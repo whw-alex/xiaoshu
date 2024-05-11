@@ -17,11 +17,8 @@ class File(models.Model):
 class Folder(File):
     pass
 
-class Note(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+class Note(File):
     title = models.CharField(max_length=50)
-    content = models.TextField()
-    modified_time = models.DateTimeField(auto_now=True)
     parent = models.ForeignKey(Folder, on_delete=models.CASCADE)
     word_count = models.IntegerField(default=0)
 
@@ -30,18 +27,16 @@ class Note(models.Model):
 class Segment(models.Model):
     note = models.ForeignKey(Note, on_delete=models.CASCADE)
     seg_type = models.CharField(max_length=10)
+    order = models.IntegerField()
 
 class TextSegment(Segment):
     text = models.TextField()
-    seg_type = 'text'
 
 class ImageSegment(Segment):
     image = models.ImageField(upload_to='image/')
-    seg_type = 'image'
 
 class AudioSegment(Segment):
     audio = models.FileField(upload_to='audio/')
-    seg_type = 'audio'
 
 
 
