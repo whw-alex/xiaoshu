@@ -51,7 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
         // get username and password
         String usernameStr = username.getText().toString();
         String passwordStr = password.getText().toString();
-        UserRequest userRequest = new UserRequest(usernameStr, passwordStr);
+        UserRequest userRequest = new UserRequest(usernameStr, passwordStr, "");
 
         // send request to server
         API apiService = API.Creator.createApiService();
