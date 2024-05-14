@@ -22,7 +22,7 @@ def login(request):
         except:
             return HttpResponse('用户不存在',status=400)
         if user.password == password:
-            user.token = jwt.encode({'id': user.id}, 'secret', algorithm='HS256').decode()
+            user.token = jwt.encode({'id': user.id}, 'secret', algorithm='HS256')
             data_json = {
                 'username': user.username,
                 'avatar': str(user.avatar),

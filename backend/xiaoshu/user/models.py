@@ -15,11 +15,10 @@ class File(models.Model):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
 
 class Folder(File):
-    pass
+    title = models.CharField(max_length=50)
 
 class Note(File):
     title = models.CharField(max_length=50)
-    parent = models.ForeignKey(Folder, on_delete=models.CASCADE)
     word_count = models.IntegerField(default=0)
 
 
