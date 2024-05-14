@@ -22,13 +22,13 @@ def login(request):
         except:
             return HttpResponse('用户不存在',status=400)
         if user.password == password:
-            user.token = jwt.encode({'id': user.id}, 'secret', algorithm='HS256')
+            # user.token = jwt.encode({'id': user.id}, 'secret', algorithm='HS256')
             data_json = {
                 'username': user.username,
                 'avatar': str(user.avatar),
                 'id': user.id,
                 'signature': user.signature,
-                'token': user.token
+                # 'token': user.token
 
             }
             return HttpResponse(json.dumps(data_json),status=200)
@@ -43,13 +43,18 @@ def register(request):
         print(f'data: {data}')
         username = data.get('username')
         password = data.get('password')
+        print(f'username: {username}, password: {password}')
 
         try:
             user = User.objects.get(username=username)
+            print('用户已存在')
+            
         except:
+            print('用户不存在')
             user = User()
             user.username = username
             user.password = password
+            print(user.signature)
             user.save()
             # 返回username, avatar, id
             json_data = {
