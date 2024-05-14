@@ -52,9 +52,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        Log.d("main", "here5");
         //设置TabLayout和ViewPager联动
         tabLayout.setupWithViewPager(viewPager,false);
-        Log.d("main", "here6");
     }
 }
