@@ -53,6 +53,14 @@
             tools:targetApi="24">
 
         </activity>
+        <activity android:name=".UserEditActivity"
+            android:exported="true"
+            tools:targetApi="24">
+        </activity>
+        <activity android:name=".UserResetActivity"
+            android:exported="true"
+            tools:targetApi="24">
+        </activity>
     </application>
 
 </manifest>
