@@ -3,7 +3,6 @@ package com.example.xiaoshu;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import java.util.*;
 import androidx.annotation.*;
@@ -16,7 +15,7 @@ import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String[] tabs = {"原神,", "启动!"};
+    private final String[] tabs = {"笔记", "我的"};
     private final List<Fragment> tabFragmentList = new ArrayList<>();
     private Toolbar toolbar;
 
@@ -33,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addTab(tabLayout.newTab().setText(tabs[0]));
         tabFragmentList.add(new NoteMainFragment());
         tabLayout.addTab(tabLayout.newTab().setText(tabs[1]));
-        tabFragmentList.add(new NoteMainFragment());
+        tabFragmentList.add(new UserFragment());
 
         viewPager.setAdapter(
                 new FragmentPagerAdapter(getSupportFragmentManager(),
@@ -58,5 +57,10 @@ public class MainActivity extends AppCompatActivity {
 
         //设置TabLayout和ViewPager联动
         tabLayout.setupWithViewPager(viewPager,false);
+
+        // 给tab设置图标
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_note);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_user);
+
     }
 }

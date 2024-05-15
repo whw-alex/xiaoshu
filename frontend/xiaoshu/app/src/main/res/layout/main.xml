@@ -32,11 +32,13 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/bar_bottom"
         android:layout_width="0dp"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
+        app:tabPaddingStart="0dp"
+        app:tabPaddingEnd="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:tabTextColor="@color/design_default_color_primary"
-        app:tabSelectedTextColor="@color/design_default_color_primary_dark"
+        app:tabTextColor="#434343"
+        app:tabSelectedTextColor="@color/teal_700"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>
