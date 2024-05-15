@@ -22,6 +22,11 @@ import androidx.annotation.Nullable;
 import com.example.xiaoshu.R;
 
 import java.util.*;
+import com.example.xiaoshu.NoteDetailActivity;
+import com.example.xiaoshu.StartActivity;
+import com.example.xiaoshu.TestActivity;
+
+import android.content.Intent;
 
 enum FileType {
     FOLDER,
@@ -199,7 +204,16 @@ public class NoteMainFragment extends Fragment{
                         }
                     });
                 }
-
+                else if (viewType == FileType.NOTE.ordinal()) {
+                    itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // todo: 跳转到NoteDetailActivity
+                            Intent intent = new Intent(context, TestActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+                }
 
             }
         }

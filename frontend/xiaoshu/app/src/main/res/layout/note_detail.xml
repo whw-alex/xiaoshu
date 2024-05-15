@@ -22,7 +22,7 @@
             >
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="32sp"
@@ -31,13 +31,12 @@
                 tools:layout_editor_absoluteY="75dp" />
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/modified_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="5月14日 下午3：23   |   10字"
+                android:text="5月14日 下午3：23"
                 android:layout_marginTop="10dp"
-                tools:layout_editor_absoluteX="29dp"
-                tools:layout_editor_absoluteY="119dp" />
+                />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"

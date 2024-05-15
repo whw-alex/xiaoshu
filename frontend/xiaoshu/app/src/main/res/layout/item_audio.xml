@@ -2,8 +2,45 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_marginTop="20dp">
+    android:layout_marginTop="20dp"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp">
 
     <!-- 添加音频播放相关的视图控件，例如播放按钮、进度条等 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:background="@drawable/audio_bg">
+
+        <!-- 播放按钮 -->
+        <ImageView
+            android:id="@+id/play"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/play_circle"
+            android:contentDescription="play"
+            android:layout_marginEnd="16dp"/>
+
+        <!-- 音频标题 -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:layout_weight="1"/>
+
+        <!-- 音频时长 -->
+        <TextView
+            android:id="@+id/duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
 
 </LinearLayout>

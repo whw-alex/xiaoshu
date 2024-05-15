@@ -12,11 +12,14 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.xiaoshu.ui.note.NoteMainFragment;
 import com.google.android.material.tabs.TabLayout;
+import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
     private final String[] tabs = {"原神,", "启动!"};
     private final List<Fragment> tabFragmentList = new ArrayList<>();
+    private Toolbar toolbar;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -24,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
         TabLayout tabLayout = findViewById(R.id.bar_bottom);
         ViewPager viewPager = findViewById(R.id.view_pager);
+
 
         //添加tab
         tabLayout.addTab(tabLayout.newTab().setText(tabs[0]));
