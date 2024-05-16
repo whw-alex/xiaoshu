@@ -11,7 +11,12 @@ import com.example.xiaoshu.Request.LoginRequest;
 import com.example.xiaoshu.Request.NoteDetailRequest;
 import com.example.xiaoshu.Response.NoteInfoResponse;
 import com.example.xiaoshu.Response.NoteItemResponse;
+import com.example.xiaoshu.Request.ProfileRequest;
+import com.example.xiaoshu.Response.ProfileResponse;
+import com.example.xiaoshu.Request.ResetPasswordRequest;
+import com.example.xiaoshu.Response.ResetPasswordResponse;
 import java.util.List;
+
 
 public interface API {
     @POST("user/register/")
@@ -26,6 +31,12 @@ public interface API {
     Call<NoteInfoResponse> noteInfo(@Body NoteDetailRequest notedetailRequest);
     @POST("user/note_list/")
     Call<List<NoteItemResponse>> noteDetail(@Body NoteDetailRequest notedetailRequest);
+
+    @POST("user/profile/")
+    Call<ProfileResponse> updateProfile(@Body ProfileRequest profileRequest);
+
+    @POST("user/reset_password/")
+    Call<ResetPasswordResponse> resetPassword(@Body ResetPasswordRequest resetPasswordRequest);
 
 
 

@@ -46,13 +46,13 @@
 
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/old_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="旧密码"
             android:layout_marginTop="20dp">
 
             <EditText
+                android:id="@+id/old_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/ic_lock_white_24dp"
@@ -63,7 +63,6 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/new_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="新密码"
@@ -72,6 +71,7 @@
             >
 
             <EditText
+                android:id="@+id/new_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/ic_lock_white_24dp"
@@ -83,7 +83,6 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/confirm_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -92,6 +91,7 @@
             >
 
             <EditText
+                android:id="@+id/confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/ic_lock_white_24dp"
@@ -110,12 +110,12 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btn_register"
+                android:id="@+id/btn_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/buttonshapewhitebg"
-                android:text="修改"
+                android:text="保存"
                 android:textAllCaps="false"
                 android:textStyle="bold"
                 android:textColor="#434343"

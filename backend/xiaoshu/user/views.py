@@ -31,6 +31,7 @@ def login(request):
                 # 'token': user.token
 
             }
+            print(f'data_json: {data_json}')
             return HttpResponse(json.dumps(data_json),status=200)
         else:
             return HttpResponse('密码错误',status=400)
@@ -126,9 +127,6 @@ def reset_password(request):
             user.password = new_password
             user.save()
             data_json = {
-                'username': user.username,
-                'avatar': str(user.avatar),
-                'signature': user.signature,
                 'id': user.id
             }
             return HttpResponse(json.dumps(data_json),status=200)

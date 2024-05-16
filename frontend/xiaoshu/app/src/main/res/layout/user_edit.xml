@@ -65,13 +65,13 @@
         android:layout_below="@id/imageView3">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="新用户名"
             >
 
-            <com.google.android.material.textfield.TextInputEditText
+            <EditText
+                android:id="@+id/username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/ic_user_white_24dp"
@@ -81,7 +81,6 @@
 
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/signature"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
@@ -90,6 +89,7 @@
             >
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/signature"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -104,12 +104,12 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btn_register"
+                android:id="@+id/btn_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/buttonshapewhitebg"
-                android:text="修改"
+                android:text="保存"
                 android:textAllCaps="false"
                 android:textStyle="bold"
                 android:textColor="#434343"

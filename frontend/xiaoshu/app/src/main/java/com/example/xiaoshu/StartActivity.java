@@ -5,6 +5,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import es.dmoral.toasty.Toasty;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -14,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.xiaoshu.Request.LoginRequest;
 import com.example.xiaoshu.Response.LoginResponse;
 import com.example.xiaoshu.RegisterActivity;
+
+import android.content.SharedPreferences;
 
 
 
@@ -110,13 +113,14 @@ public class StartActivity extends AppCompatActivity{
                     System.out.println(loginResponse);
                     Toasty.success(StartActivity.this, "Login successful!", Toast.LENGTH_SHORT, true).show();
                     // save token to shared preferences
-//                    SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
-//                    SharedPreferences.Editor editor = sharedPreferences.edit();
-//                    editor.putString("token", loginResponse.getToken());
-//                    editor.putString("id", String.valueOf(loginResponse.getId()));
-//                    editor.putString("username", loginResponse.getUsername());
-//                    editor.putString("avatar", loginResponse.getAvatar());
-//                    editor.apply();
+                    SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("signature", loginResponse.getSignature());
+                    editor.putInt("id", loginResponse.getId());
+                    editor.putString("username", loginResponse.getUsername());
+                    editor.putString("avatar", loginResponse.getAvatar());
+                    editor.apply();
+                    Log.d("login", loginResponse.getAvatar());
 //                    startService();
                     gotoMainActivity();
 
@@ -136,6 +140,7 @@ public class StartActivity extends AppCompatActivity{
     }
     private void gotoMainActivity()
     {
+        Log.d("StartActivity", "gotoMainActivity: ");
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }

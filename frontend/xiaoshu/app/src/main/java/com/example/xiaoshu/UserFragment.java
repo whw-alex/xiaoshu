@@ -2,6 +2,7 @@ package com.example.xiaoshu;
 
 import androidx.fragment.app.Fragment;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.widget.*;
 import androidx.recyclerview.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.net.Uri;
 
 
 import com.example.xiaoshu.R;
@@ -26,6 +28,7 @@ import java.util.*;
 public class UserFragment extends Fragment{
     ImageView imageView_edit;
     ImageView imageView_settings;
+    ImageView avatar_;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -44,8 +47,54 @@ public class UserFragment extends Fragment{
                 startActivity(intent);
 
         });
+        avatar_ = view.findViewById(R.id.avatar_);
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("login_status", Context.MODE_PRIVATE);
+        String avatar_url = sharedPreferences.getString("avatar", "");
+        Log.d("UserFragment", "onCreateView: avatar_url: " + avatar_url);
+        String username = sharedPreferences.getString("username", "");
+        TextView username_ = view.findViewById(R.id.username_);
+        username_.setText(username);
+        String signature = sharedPreferences.getString("signature", "");
+        TextView signature_ = view.findViewById(R.id.signature_);
+        signature_.setText(signature);
+
+        if(!avatar_url.isEmpty())
+        {
+            avatar_.setImageURI(null);
+            avatar_.setImageURI(Uri.parse(avatar_url));
+        }
+        else
+        {
+            avatar_.setImageResource(R.drawable.avatar_11);
+        }
+
         return view;
     }
+
+    public void onResume() {
+        super.onResume();
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("login_status", Context.MODE_PRIVATE);
+        String avatar_url = sharedPreferences.getString("avatar", "");
+        Log.d("UserFragment", "onCreateView: avatar_url: " + avatar_url);
+        String username = sharedPreferences.getString("username", "");
+        TextView username_ = getView().findViewById(R.id.username_);
+        username_.setText(username);
+        String signature = sharedPreferences.getString("signature", "");
+        TextView signature_ = getView().findViewById(R.id.signature_);
+        signature_.setText(signature);
+
+        if(!avatar_url.isEmpty())
+        {
+            Uri avatar_uri = Uri.parse(avatar_url);
+            Log.d("UserFragment", "onCreateView: avatar_uri: " + avatar_uri);
+            avatar_.setImageURI(avatar_uri);
+        }
+        else
+        {
+            avatar_.setImageResource(R.drawable.avatar_11);
+        }
+    }
+
 
 
 }
