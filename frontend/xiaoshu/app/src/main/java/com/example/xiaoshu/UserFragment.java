@@ -28,6 +28,7 @@ import java.util.*;
 public class UserFragment extends Fragment{
     ImageView imageView_edit;
     ImageView imageView_settings;
+    ImageView imageView_logout;
     ImageView avatar_;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
@@ -47,6 +48,17 @@ public class UserFragment extends Fragment{
                 startActivity(intent);
 
         });
+        imageView_logout = view.findViewById(R.id.logout);
+        imageView_logout.setOnClickListener(v -> {
+            // logout
+            SharedPreferences sharedPreferences = requireContext().getSharedPreferences("login_status", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("login", false);
+            editor.apply();
+            Intent intent = new Intent(requireContext(), StartActivity.class);
+            startActivity(intent);
+        });
+
         avatar_ = view.findViewById(R.id.avatar_);
         SharedPreferences sharedPreferences = requireContext().getSharedPreferences("login_status", Context.MODE_PRIVATE);
         String avatar_url = sharedPreferences.getString("avatar", "");

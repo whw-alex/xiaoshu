@@ -1,5 +1,7 @@
 package com.example.xiaoshu;
 
+import android.net.Uri;
+import android.util.Log;
 import android.view.*;
 
 import androidx.annotation.NonNull;
@@ -27,6 +29,8 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             return NoteItem.TYPE_AUDIO;
         } else if (item.getType() == NoteItem.TYPE_IMAGE) {
             return NoteItem.TYPE_IMAGE;
+        } else if (item.getType() == NoteItem.TYPE_TEXT_PLACEHOLDER) {
+            return NoteItem.TYPE_TEXT_PLACEHOLDER;
         }
         return super.getItemViewType(position);
     }
@@ -47,7 +51,11 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         } else if (viewType == NoteItem.TYPE_IMAGE) {
             view = inflater.inflate(R.layout.item_image, parent, false);
             viewHolder = new ImageViewHolder(view);
-        } else {
+        } else if (viewType == NoteItem.TYPE_TEXT_PLACEHOLDER) {
+            view = inflater.inflate(R.layout.item_text_placeholder, parent, false);
+            viewHolder = new TextViewHolder(view);
+        }
+        else {
             throw new IllegalArgumentException("Invalid view type");
         }
 
@@ -68,7 +76,18 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         } else if (holder instanceof ImageViewHolder) {
             ImageViewHolder imageViewHolder = (ImageViewHolder) holder;
             // 设置图片相关的逻辑
-            Picasso.get().load(item.getContent()).into(imageViewHolder.imageView);
+//            Picasso.get().load(item.getContent()).into(imageViewHolder.imageView);
+            if (item.getContent().equals("")){
+                imageViewHolder.imageView.setImageResource(R.drawable.avatar_1);
+            }
+            else {
+//                用uri加载图片
+                imageViewHolder.imageView.setImageURI(null);
+                Log.d("NoteAdapter", "onBindViewHolder: " + item.getContent());
+                Uri uri = Uri.parse(item.getContent());
+                Log.d("NoteAdapter", "onBindViewHolder: " + uri.toString());
+                imageViewHolder.imageView.setImageURI(uri);
+            }
         }
     }
 
