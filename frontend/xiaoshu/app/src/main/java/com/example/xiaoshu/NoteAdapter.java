@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.*;
 import android.widget.*;
+import com.squareup.picasso.Picasso;
 
 
 
@@ -67,6 +68,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         } else if (holder instanceof ImageViewHolder) {
             ImageViewHolder imageViewHolder = (ImageViewHolder) holder;
             // 设置图片相关的逻辑
+            Picasso.get().load(item.getContent()).into(imageViewHolder.imageView);
         }
     }
 

@@ -3,16 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/edit"
-        android:icon="@drawable/ic_note"
-        android:title="edit"
+        android:id="@+id/item_audio"
+        android:icon="@drawable/ic_audio"
+        android:title="插入语音"
         app:showAsAction="ifRoom" />
 
 
-
     <item
-        android:id="@+id/more"
-        android:title="more"
-        app:showAsAction="never" />
+        android:id="@+id/item_take_photo"
+        android:icon="@drawable/ic_camera"
+        android:title="相机拍照"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/item_choose_photo"
+        android:icon="@drawable/ic_photo_library"
+        android:title="相册选择"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/item_delete"
+        android:icon="@drawable/ic_delete"
+        android:title="删除笔记"
+        app:showAsAction="ifRoom" />
+
+
 
 </menu>

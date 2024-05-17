@@ -17,19 +17,27 @@ import retrofit2.Response;
 import com.example.xiaoshu.Request.NoteDetailRequest;
 import com.example.xiaoshu.Response.NoteItemResponse;
 import com.example.xiaoshu.Response.NoteInfoResponse;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toolbar;
 
 
 public class TestActivity extends  AppCompatActivity{
     private RecyclerView recyclerView;
     private NoteAdapter noteAdapter;
+    MaterialToolbar topAppBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.note_detail);
+        topAppBar = findViewById(R.id.topAppBar);
+        topAppBar.setNavigationOnClickListener(v -> {
+            finish();
+        });
         List<NoteItem> noteList = new ArrayList<>();
         TextView title = findViewById(R.id.title);
         TextView modifiedTime = findViewById(R.id.modified_time);

@@ -25,6 +25,7 @@ import java.util.*;
 import com.example.xiaoshu.NoteDetailActivity;
 import com.example.xiaoshu.StartActivity;
 import com.example.xiaoshu.TestActivity;
+import com.example.xiaoshu.NoteDetailActivity;
 
 import android.content.Intent;
 
@@ -209,7 +210,7 @@ public class NoteMainFragment extends Fragment{
                         @Override
                         public void onClick(View v) {
                             // todo: 跳转到NoteDetailActivity
-                            Intent intent = new Intent(context, TestActivity.class);
+                            Intent intent = new Intent(context, NoteDetailActivity.class);
                             startActivity(intent);
                         }
                     });
