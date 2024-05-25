@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="icons">
+        <item>@drawable/ic_camera</item>
+        <item>@drawable/ic_edit</item>
+    </array>
+
+    <array name="colors">
+        <item>#FFFFFF</item>
+        <item>#FFFFFF</item>
+    </array>
+</resources>

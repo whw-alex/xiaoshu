@@ -4,7 +4,11 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
+import com.example.xiaoshu.Request.FileListRequest;
 import com.example.xiaoshu.Request.UserRequest;
+import com.example.xiaoshu.Request.AddFileRequest;
+import com.example.xiaoshu.Response.AddFileResponse;
+import com.example.xiaoshu.Response.FilelistResponse;
 import com.example.xiaoshu.Response.UserResponse;
 import com.example.xiaoshu.Response.LoginResponse;
 import com.example.xiaoshu.Request.LoginRequest;
@@ -38,7 +42,11 @@ public interface API {
     @POST("user/reset_password/")
     Call<ResetPasswordResponse> resetPassword(@Body ResetPasswordRequest resetPasswordRequest);
 
+    @POST("user/file_list/")
+    Call<FilelistResponse> get_file_list(@Body FileListRequest fileListRequest);
 
+    @POST("user/create_file/")
+    Call<AddFileResponse> create_file(@Body AddFileRequest fileListRequest);
 
     class Creator {
         public static API createApiService() {
