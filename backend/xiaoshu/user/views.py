@@ -133,44 +133,6 @@ def reset_password(request):
         return HttpResponse('原密码错误',status=400)
     return HttpResponse('请求方式错误',status=400)
 
-def folder(request):
-    if request.method == 'POST':
-        data = request.body
-        data = json.loads(data)
-        print(f'data: {data}')
-        user_id = data.get('id')
-        path = data.get('path')
-        user = User.objects.get(id=user_id)
-        folder = Folder.objects.get(user=user,path=path)
-        folder_list = Folder.objects.filter(user=user,parent=folder)
-        note_list = Note.objects.filter(user=user,parent=folder)
-        data_list = folder_list.all() + note_list.all()
-        data_json = []
-        for i in data_list:
-            if i.label == 'folder':
-
-                # temp_json = {
-                #     'label': i.label,
-                #     'title': i.title,
-                #     'modified_time': i.modified_time,  
-                # }
-                temp_json = {}
-                temp_json['label'] = i.label
-                temp_json['title'] = i.title
-                temp_json['modified_time'] = i.modified_time
-                data_json.append(temp_json)
-            else:
-                temp_json = {}
-                temp_json['label'] = i.label
-                temp_json['title'] = i.title
-                temp_json['modified_time'] = i.modified_time
-                try:
-                    first_text = TextSegment.objects.filter(note=i).first()
-                    temp_json['content'] = first_text.text[:4]+'...'
-                except:
-                    temp_json['content'] = '新建笔记'
-                data_json.append(temp_json)
-        return HttpResponse(json.dumps(data_json),status=200)
     
 def note_list(request):
     if request.method == 'POST':
@@ -258,4 +220,83 @@ def note_info(request):
             }
             return HttpResponse(json.dumps(data_json),status=200)
     return HttpResponse('请求方式错误',status=400)
+
+def file_list(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+        user_id = data.get('id')
+        path = data.get('path')
+        cur_user = User.objects.get(id=user_id)
+        if path == 'root':
+            folder_list = Folder.objects.filter(user=cur_user, parent__isnull=True)
+            note_list = Note.objects.filter(user=cur_user, parent__isnull=True)
+        else:
+            folder = Folder.objects.get(user=cur_user, path=path)
+            folder_list = Folder.objects.filter(user=cur_user, parent=folder)
+            note_list = Note.objects.filter(user=cur_user, parent=folder)
+
+        data_json = {
+            "labels": [],
+            "titles": [],
+            "contents": [],
+            "dates": [],
+        }
+
+        for folder in folder_list:
+            data_json['labels'].append(folder.label)
+            data_json['titles'].append(folder.name)
+            data_json['contents'].append("")
+            data_json['dates'].append(folder.modified_time.strftime("%m月%d号"))
+            print(folder.path)
+
+        for note in note_list:
+            data_json['labels'].append(note.label)
+            data_json['titles'].append(note.name)
+            try:
+                first_text = TextSegment.objects.filter(note=note).first()
+                data_json['contents'].append(first_text.text[:4]+'...')
+            except:
+                data_json['contents'].append('')
+            data_json['dates'].append(note.modified_time.strftime("%m月%d号"))
+
+        # data_json = {
+        #     "labels": ["folder", "note", "note"],
+        #     "titles": ["test1", "test2", "test3"],
+        #     "contents": ["test...", "try...", "space"],
+        #     "dates": ["5月10日", "5月15日", "5月20日"],
+        # }
+        print(data_json)
+        return HttpResponse(json.dumps(data_json),status=200)
+
+
+def create_file(request):
+    if request.method == 'POST':
+        print("try to create a new file")
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+        user_id = data.get('id')
+        parent_path = data.get('location')
+        name = data.get('filename')
+        label = data.get('label') 
+
+        user = User.objects.get(id=user_id)
+        parent = None if parent_path == 'root' else Folder.objects.get(user=user, path=parent_path)
+        path = parent_path + '/' + name
+        if label == 'folder':
+            if Folder.objects.filter(user=user, name=name, parent=parent).exists():
+                print("重复！")
+                return HttpResponse(json.dumps({'msg': '文件名重复！'}), status=400)
+            Folder.objects.create(title="", user=user, name=name, parent=parent, path=path)
+        else:
+            if Note.objects.filter(user=user, name=name, parent=parent).exists():
+                print("重复！")
+                return HttpResponse(json.dumps({'msg': '文件名重复！'}), status=400)
+            Note.objects.create(title="", user=user, name=name, parent=parent, path=path)
+
+        return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+            
+        
             

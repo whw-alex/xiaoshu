@@ -30,7 +30,7 @@ class Note(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     modified_time = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    parent = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True)
     path = models.CharField(max_length=100)
     label = "note"
 
