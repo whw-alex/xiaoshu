@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -28,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.xiaoshu.R;
 import com.example.xiaoshu.Request.AddFileRequest;
 import com.example.xiaoshu.Request.NoteDetailRequest;
+import com.example.xiaoshu.Request.SaveNoteTestRequest;
 import com.example.xiaoshu.Response.AddFileResponse;
 import com.example.xiaoshu.Response.NoteInfoResponse;
 import com.example.xiaoshu.Response.NoteItemResponse;
@@ -70,7 +72,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
     private NoteAdapter noteAdapter;
     RecyclerView recyclerView;
     List<NoteItem> noteList;
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 1;
     private static final int PERMISSION_CAMERA_REQUEST_CODE = 0x00000012;
     private Uri imageUri;
     private Uri mCameraUri;
@@ -136,13 +138,12 @@ public class NoteDetailActivity extends  AppCompatActivity{
                         Log.d("TestActivity", "NoteItemResponse: " + noteItemResponse.getType() + " " + noteItemResponse.getContent());
                     }
                     // 创建笔记内容列表
-                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是一段文本内容"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio.mp3"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, "http://10.0.2.2:8000/static/image/1/root/IMG/0_image.jpg"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是另一段文本内容"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio2.mp3"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, ""));
-                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是一段文本内容"));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio.mp3"));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是另一段文本内容"));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio2.mp3"));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, ""));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
 
                     // 创建并设置适配器
                     noteAdapter = new NoteAdapter(noteList);
@@ -161,7 +162,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
 
         topAppBar = findViewById(R.id.topAppBar);
         topAppBar.setNavigationOnClickListener(v -> {
-            finish();
+            saveAllText();
+//            finish();
         });
         topAppBar.setOnMenuItemClickListener(new MaterialToolbar.OnMenuItemClickListener() {
             @Override
@@ -182,7 +184,11 @@ public class NoteDetailActivity extends  AppCompatActivity{
 
                     return true;
                 } else if (itemId == R.id.item_choose_photo) {
-                    // edit note
+//                    choose photo
+                    Log.d("NoteDetailActivity", "choose photo");
+                    pickImageFromGallery();
+
+
                     return true;
                 } else if (itemId == R.id.item_audio) {
                     // 更改icon
@@ -211,11 +217,22 @@ public class NoteDetailActivity extends  AppCompatActivity{
 
 //             获取notelist
             Log.d("NoteDetailActivity", "Image URL: " + mCameraUri.toString());
-            noteList.remove(noteList.size() - 1);
+//            noteList.remove(noteList.size() - 1);
             noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, mCameraUri.toString()));
-            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, "这是最后一段文本内容"));
+            noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
+//            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
             uploadImage(mCameraUri);
+        }
+        else if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            Log.d("NoteDetailActivity", "Image URL: " + uri.toString());
+//            noteList.remove(noteList.size() - 1);
+            noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, uri.toString()));
+            noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
+//            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
+            noteAdapter.notifyDataSetChanged();
+            uploadImage(uri);
         }
     }
 
@@ -372,6 +389,61 @@ public class NoteDetailActivity extends  AppCompatActivity{
             Log.d("NoteDetailActivity", "Error: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+
+    private void pickImageFromGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
+    private void saveAllText() {
+        // 保存所有文本内容
+        List<Pair<Integer, String>> textList = new ArrayList<>();
+        for (int i = 0; i < noteList.size(); i++) {
+            NoteItem item = noteList.get(i);
+            if (item.getType() == NoteItem.TYPE_TEXT) {
+                // 保存文本内容
+                Log.d("NoteDetailActivity", "Save text: " + item.getContent());
+//                textList.add(new Pair<>(i, item.getContent()));
+                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
+                if (viewHolder instanceof NoteAdapter.TextViewHolder) {
+                    NoteAdapter.TextViewHolder textViewHolder = (NoteAdapter.TextViewHolder) viewHolder;
+                    textList.add(new Pair<>(i, textViewHolder.editText.getText().toString()));
+                }
+            }
+        }
+        SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int id = sharedPreferences.getInt("id", 0);
+        API api = API.Creator.createApiService();
+        Call<AddFileResponse> call = api.saveNoteText(new SaveNoteTestRequest(id, path, textList));
+        call.enqueue(new Callback<AddFileResponse>() {
+            @Override
+            public void onResponse(Call<AddFileResponse> call, Response<AddFileResponse> response) {
+                if(response.isSuccessful())
+                {
+                    AddFileResponse addFileResponse = response.body();
+                    Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
+                    finish();
+                }
+                else
+                {
+                    Log.d("NoteDetailActivity", "Error: " + response.message());
+                    Toasty.error(NoteDetailActivity.this, "Error: " + response.message(), Toast.LENGTH_SHORT, true).show();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AddFileResponse> call, Throwable t) {
+                // 请求失败
+                Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
+                finish();
+
+            }
+        });
     }
 
 }

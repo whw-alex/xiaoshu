@@ -23,6 +23,7 @@ import com.example.xiaoshu.Request.ProfileRequest;
 import com.example.xiaoshu.Response.ProfileResponse;
 import com.example.xiaoshu.Request.ResetPasswordRequest;
 import com.example.xiaoshu.Response.ResetPasswordResponse;
+import com.example.xiaoshu.Request.SaveNoteTestRequest;
 import java.util.List;
 
 
@@ -54,6 +55,9 @@ public interface API {
 
     @POST("user/upload_note_image/")
     Call<AddFileResponse> uploadImage(@Body RequestBody photo);
+
+    @POST("user/save_note_text/")
+    Call<AddFileResponse> saveNoteText(@Body SaveNoteTestRequest saveNoteTestRequest);
 
     class Creator {
         public static API createApiService() {

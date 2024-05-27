@@ -21,4 +21,10 @@ public class NoteItem {
     public String getContent() {
         return content;
     }
+    public void setType(int type) {
+        this.type = type;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
 }
