@@ -11,4 +11,10 @@ urlpatterns = [
     path('create_file/', views.create_file),
     path('note_list/', views.note_list),
     path('note_info/', views.note_info),
+    path('upload_note_image/', views.upload_note_image),
 ]
+
+# add static
+from django.conf import settings
+from django.conf.urls.static import static
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

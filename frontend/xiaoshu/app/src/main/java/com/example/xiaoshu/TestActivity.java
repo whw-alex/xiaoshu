@@ -2,6 +2,7 @@ package com.example.xiaoshu;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -45,9 +46,11 @@ public class TestActivity extends  AppCompatActivity{
         // 初始化 RecyclerView
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
+        SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int id = sharedPreferences.getInt("id", 0);
         API api = API.Creator.createApiService();
-        Call<NoteInfoResponse> call_ = api.noteInfo(new NoteDetailRequest(""));
+        Call<NoteInfoResponse> call_ = api.noteInfo(new NoteDetailRequest("", id));
         call_.enqueue(new Callback<NoteInfoResponse>() {
             @Override
             public void onResponse(Call<NoteInfoResponse> call, Response<NoteInfoResponse> response) {
@@ -68,7 +71,7 @@ public class TestActivity extends  AppCompatActivity{
             }
         });
 
-        Call<List<NoteItemResponse>> call = api.noteDetail(new NoteDetailRequest(""));
+        Call<List<NoteItemResponse>> call = api.noteDetail(new NoteDetailRequest("", 0));
 
         call.enqueue(new Callback<List<NoteItemResponse>>() {
             @Override

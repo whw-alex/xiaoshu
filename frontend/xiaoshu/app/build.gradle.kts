@@ -53,4 +53,7 @@ dependencies {
     implementation("com.github.GrenderG:Toasty:1.5.2")
     implementation("com.squareup.picasso:picasso:2.71828")
     implementation("com.getbase:floatingactionbutton:1.10.1")
+    implementation("com.squareup.okhttp3:okhttp:3.14.+")
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+
 }

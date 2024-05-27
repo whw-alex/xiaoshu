@@ -1,5 +1,7 @@
 package com.example.xiaoshu;
 
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
 import android.view.*;
@@ -8,12 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.*;
 import android.widget.*;
-import com.squareup.picasso.Picasso;
 
+import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
+import android.graphics.BitmapFactory;
 
 
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteList;
+    private static final String BASE_URL = "http://10.0.2.2:8000/";
+
 
     public NoteAdapter(List<NoteItem> noteList) {
         this.noteList = noteList;
@@ -84,12 +90,34 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 //                用uri加载图片
                 imageViewHolder.imageView.setImageURI(null);
                 Log.d("NoteAdapter", "onBindViewHolder: " + item.getContent());
-                Uri uri = Uri.parse(item.getContent());
-                Log.d("NoteAdapter", "onBindViewHolder: " + uri.toString());
-                imageViewHolder.imageView.setImageURI(uri);
+                String url;
+                if (item.getContent().contains("static")) {
+                    Log.d("NoteAdapter","contains static");
+                     url = item.getContent();
+                     Log.d("NoteAdapter", "onBindViewHolder url: " + url);
+//                     Picasso.get().load(url).into(imageViewHolder.imageView);
+//                    显示网络图片
+//                    Context context = imageViewHolder.imageView.getContext();
+//                    Glide.with(context).load(url).into(imageViewHolder.imageView);
+                    loadImageUrl(url, imageViewHolder.imageView);
+                } else {
+
+                     url = item.getContent();
+                    Uri uri = Uri.parse(url);
+                    Log.d("NoteAdapter", "onBindViewHolder: " + uri.toString());
+                    imageViewHolder.imageView.setImageURI(uri);
+                }
+
             }
         }
     }
+
+public int loadImageUrl(String url, ImageView imageView) {
+    // 使用 Picasso 加载图片
+    Picasso.get().load(url).into(imageView);
+    return 0;
+
+}
 
     @Override
     public int getItemCount() {
