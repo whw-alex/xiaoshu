@@ -33,6 +33,7 @@ class Note(models.Model):
     parent = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True)
     path = models.CharField(max_length=100)
     label = "note"
+    current_index = models.IntegerField(default=0)
 
 
 # segment: 基类, 子类可以是：文字，图片，语音
@@ -48,7 +49,8 @@ class TextSegment(models.Model):
     index = models.IntegerField(default=0)
 
 class ImageSegment(models.Model):
-    image = models.ImageField(upload_to='image/')
+    # image = models.ImageField(upload_to='image/')
+    image = models.CharField(max_length=100)
     note = models.ForeignKey(Note, on_delete=models.CASCADE)
     seg_type = models.CharField(max_length=10)
     index = models.IntegerField(default=0)

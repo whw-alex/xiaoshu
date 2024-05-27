@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -25,7 +26,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.xiaoshu.R;
+import com.example.xiaoshu.Request.AddFileRequest;
 import com.example.xiaoshu.Request.NoteDetailRequest;
+import com.example.xiaoshu.Response.AddFileResponse;
 import com.example.xiaoshu.Response.NoteInfoResponse;
 import com.example.xiaoshu.Response.NoteItemResponse;
 
@@ -35,8 +38,10 @@ import android.content.Intent;
 import android.provider.MediaStore;
 import android.graphics.Bitmap;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,9 +49,15 @@ import java.util.Date;
 import java.util.List;
 
 import es.dmoral.toasty.Toasty;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 import java.io.File;
 import java.util.Locale;
 
@@ -63,6 +74,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
     private static final int PERMISSION_CAMERA_REQUEST_CODE = 0x00000012;
     private Uri imageUri;
     private Uri mCameraUri;
+    private String path;
 
     // 用于保存图片的文件路径，Android 10以下使用图片路径访问图片
     private String mCameraImagePath;
@@ -75,7 +87,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.note_detail);
-
+        path = getIntent().getStringExtra("path");
 
         noteList = new ArrayList<>();
         TextView title = findViewById(R.id.title);
@@ -85,8 +97,11 @@ public class NoteDetailActivity extends  AppCompatActivity{
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int id = sharedPreferences.getInt("id", 0);
         API api = API.Creator.createApiService();
-        Call<NoteInfoResponse> call_ = api.noteInfo(new NoteDetailRequest(""));
+        Call<NoteInfoResponse> call_ = api.noteInfo(new NoteDetailRequest(path, id));
         call_.enqueue(new Callback<NoteInfoResponse>() {
             @Override
             public void onResponse(Call<NoteInfoResponse> call, Response<NoteInfoResponse> response) {
@@ -107,7 +122,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             }
         });
 
-        Call<List<NoteItemResponse>> call = api.noteDetail(new NoteDetailRequest(""));
+        Call<List<NoteItemResponse>> call = api.noteDetail(new NoteDetailRequest(path, id));
 
         call.enqueue(new Callback<List<NoteItemResponse>>() {
             @Override
@@ -123,11 +138,11 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     // 创建笔记内容列表
                     noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是一段文本内容"));
                     noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio.mp3"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, ""));
+                    noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, "http://10.0.2.2:8000/static/image/1/root/IMG/0_image.jpg"));
                     noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是另一段文本内容"));
                     noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio2.mp3"));
                     noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, ""));
-                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, "这是最后一段文本内容"));
+                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
 
                     // 创建并设置适配器
                     noteAdapter = new NoteAdapter(noteList);
@@ -170,7 +185,12 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     // edit note
                     return true;
                 } else if (itemId == R.id.item_audio) {
-                    // delete note
+                    // 更改icon
+                    if (item.getIcon().getConstantState().equals(getResources().getDrawable(R.drawable.ic_audio).getConstantState())) {
+                        item.setIcon(R.drawable.ic_stop_audio);
+                    } else {
+                        item.setIcon(R.drawable.ic_audio);
+                    }
                     return true;
                 }
 
@@ -186,14 +206,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
         Log.d("NoteDetailActivity", "onActivityResult");
 
         if (requestCode == PERMISSION_CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
-//            Bundle extras = data.getExtras();
-//             Bitmap imageBitmap = (Bitmap) extras.get("data");
-//            // 将 Bitmap 对象保存到文件
-//            File imageFile = saveBitmapToFile(imageBitmap);
-//
-//            // 获取文件路径作为 URL
-//            String imageUrl = imageFile.getAbsolutePath();
-//            Log.d("NoteDetailActivity", "Image URL: " + imageUrl);
+
 
 
 //             获取notelist
@@ -202,22 +215,11 @@ public class NoteDetailActivity extends  AppCompatActivity{
             noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, mCameraUri.toString()));
             noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, "这是最后一段文本内容"));
             noteAdapter.notifyDataSetChanged();
+            uploadImage(mCameraUri);
         }
     }
 
-    private File saveBitmapToFile(Bitmap bitmap) {
-        File filesDir = getFilesDir();
-        File imageFile = new File(filesDir, "captured_image.jpg");
 
-        try (OutputStream outputStream = new FileOutputStream(imageFile)) {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-            outputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return imageFile;
-    }
 
     private void checkPermissionAndCamera() {
         int hasCameraPermission = ContextCompat.checkSelfPermission(getApplication(),
@@ -302,6 +304,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
         } else {
             return getContentResolver().insert(MediaStore.Images.Media.INTERNAL_CONTENT_URI, new ContentValues());
         }
+
     }
 
     /**
@@ -318,6 +321,57 @@ public class NoteDetailActivity extends  AppCompatActivity{
             return null;
         }
         return tempFile;
+    }
+
+    public void uploadImage(Uri uri) {
+        try {
+            InputStream is = getContentResolver().openInputStream(uri);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                os.write(buffer, 0, len);
+            }
+            os.flush();
+            byte[] data = os.toByteArray();
+            Log.d("NoteDetailActivity", "uploadImage data: " + data.length);
+            API api = API.Creator.createApiService();
+            MultipartBody.Builder builder = new MultipartBody.Builder();
+            builder.setType(MultipartBody.FORM);
+            RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), data);
+            Log.d("NoteDetailActivity", "uploadImage requestbody: " + requestBody.contentType() + " " + requestBody.contentLength() + " " + requestBody.toString());
+            SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            int id = sharedPreferences.getInt("id", 0);
+            builder.addFormDataPart("id", String.valueOf(id));
+            builder.addFormDataPart("file", "image.jpg", requestBody);
+            builder.addFormDataPart("path", path);
+            RequestBody body = builder.build();
+            Log.d("NoteDetailActivity", "uploadImage: " + body.contentType() + " " + body.contentLength());
+            Call<AddFileResponse> call = api.uploadImage(body);
+            call.enqueue(new Callback<AddFileResponse>() {
+                @Override
+                public void onResponse(Call<AddFileResponse> call, Response<AddFileResponse> response) {
+                    if(response.isSuccessful())
+                    {
+                        AddFileResponse addFileResponse = response.body();
+                        Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<AddFileResponse> call, Throwable t) {
+                    // 请求失败
+                    Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                    Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
+                }
+            });
+            os.close();
+            is.close();
+        } catch (IOException e) {
+            Log.d("NoteDetailActivity", "Error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 }

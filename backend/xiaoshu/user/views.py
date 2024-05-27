@@ -6,6 +6,7 @@ from django.http import HttpRequest
 from .models import User, Folder, Note, TextSegment, ImageSegment, AudioSegment
 import json
 import jwt
+from datetime import datetime
 
 
 
@@ -136,63 +137,68 @@ def reset_password(request):
     
 def note_list(request):
     if request.method == 'POST':
-        user_id = request.GET.get('id')
-        path = request.GET.get('path')
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+        user_id = data.get('id')
+        path = data.get('path')
         data_json = []
-        try:
-            user = User.objects.get(id=user_id)
-            note = Note.objects.get(user=user,path=path)
+        # try:
+        print(f'user_id: {user_id}, path: {path}')
+        user = User.objects.get(id=user_id)
+        note = Note.objects.get(user=user,path=path)
 
-            text_list = TextSegment.objects.filter(note=note)
-            image_list = ImageSegment.objects.filter(note=note)
-            audio_list = AudioSegment.objects.filter(note=note)
-            
-            data_list = text_list.all() + image_list.all() + audio_list.all()
-            data_list = sorted(data_list,key=lambda x:x.index)
-            for i in data_list:
-                if i.seg_type == 'text':
-                    temp_json = {
-                        'seg_type': i.seg_type,
-                        'content': i.text,
-                        'index': i.index
-                    }
-                    data_json.append(temp_json)
-                elif i.seg_type == 'image':
-                    temp_json = {
-                        'seg_type': i.seg_type,
-                        'content': str(i.image),
-                        'index': i.index
-                    }
-                    data_json.append(temp_json)
-                elif i.seg_type == 'audio':
-                    temp_json = {
-                        'seg_type': i.seg_type,
-                        'content': str(i.audio),
-                        'index': i.index
-                    }
-                    data_json.append(temp_json)
-            # test
-            test_text = {
-                'seg_type': 'text',
-                'content': '这是一个测试',
-                'index': 0
-            }
-            print(f'test_text: {test_text}')
-            data_json.append(test_text)
-            print(f'data_json: {data_json}')
-            return HttpResponse(json.dumps(data_json),status=200)
-        except:
-            # return HttpResponse('笔记不存在',status=400)
-            # test
-            test_text = {
-                'seg_type': 'text',
-                'content': '这是一个测试',
-                'index': 0
-            }
-            print(f'test_text: {test_text}')
-            data_json.append(test_text)
-            print(f'data_json: {json.dumps(data_json)}')
-            return HttpResponse(json.dumps(data_json),status=200)
+        text_list = TextSegment.objects.filter(note=note)
+        image_list = ImageSegment.objects.filter(note=note)
+        audio_list = AudioSegment.objects.filter(note=note)
+        
+        data_list = list(text_list.all()) + list(image_list.all()) + list(audio_list.all())
+        data_list = sorted(data_list,key=lambda x:x.index)
+        for i in data_list:
+            if i.seg_type == 'text':
+                temp_json = {
+                    'seg_type': i.seg_type,
+                    'content': i.text,
+                    'index': i.index
+                }
+                data_json.append(temp_json)
+            elif i.seg_type == 'image':
+                temp_json = {
+                    'seg_type': i.seg_type,
+                    'content': str(i.image),
+                    'index': i.index
+                }
+                data_json.append(temp_json)
+            elif i.seg_type == 'audio':
+                temp_json = {
+                    'seg_type': i.seg_type,
+                    'content': str(i.audio),
+                    'index': i.index
+                }
+                data_json.append(temp_json)
+        
+        # # test
+        # test_text = {
+        #     'seg_type': 'text',
+        #     'content': '这是一个测试',
+        #     'index': 0
+        # }
+        # print(f'test_text: {test_text}')
+        # data_json.append(test_text)
+        print(f'data_json: {data_json}')
+        return HttpResponse(json.dumps(data_json),status=200)
+        # except:
+        #     # return HttpResponse('笔记不存在',status=400)
+        #     # test
+        #     test_text = {
+        #         'seg_type': 'text',
+        #         'content': '这是一个测试',
+        #         'index': 0
+        #     }
+        #     print(f'test_text: {test_text}')
+        #     data_json.append(test_text)
+        #     print(f'data_json: {json.dumps(data_json)}')
+        #     return HttpResponse(json.dumps(data_json),status=200)
     return HttpResponse('请求方式错误',status=400)
 
             
@@ -203,23 +209,30 @@ def note_info(request):
         print(f'data: {data}')
         user_id = data.get('id')
         path = data.get('path')
-        try:
-            user = User.objects.get(id=user_id)
-            note = Note.objects.get(user=user,path=path)
+        user = User.objects.get(id=user_id)
+        note = Note.objects.get(user=user,path=path)
+        data_json = {
+                'title': note.name,
+                'modified_time': note.modified_time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+        return HttpResponse(json.dumps(data_json),status=200)
+    #     try:
+    #         user = User.objects.get(id=user_id)
+    #         note = Note.objects.get(user=user,path=path)
             
-            data_json = {
-                'title': note.title,
-                'modified_time': note.modified_time
-            }
-            return HttpResponse(json.dumps(data_json),status=200)
-        except:
-            data_json = {
-                'title': 'fake笔记',
-                'word_count': 20,
-                'modified_time': '2021-01-01 00:00:00'
-            }
-            return HttpResponse(json.dumps(data_json),status=200)
-    return HttpResponse('请求方式错误',status=400)
+    #         data_json = {
+    #             'title': note.title,
+    #             'modified_time': note.modified_time
+    #         }
+    #         return HttpResponse(json.dumps(data_json),status=200)
+    #     except:
+    #         data_json = {
+    #             'title': 'fake笔记',
+    #             'word_count': 20,
+    #             'modified_time': '2021-01-01 00:00:00'
+    #         }
+    #         return HttpResponse(json.dumps(data_json),status=200)
+    # return HttpResponse('请求方式错误',status=400)
 
 def file_list(request):
     if request.method == 'POST':
@@ -299,4 +312,38 @@ def create_file(request):
         return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
             
         
-            
+def upload_note_image(request):
+    print("try to upload a new image")
+    print(f'request: {request}')
+    print(f'request.FILES: {request.FILES}')
+    if request.method == 'POST' and request.FILES.get('file'):
+        print("try to upload a new image")
+        data = request.POST
+        print(f'data: {data}')
+        image = request.FILES.get('file')
+        user_id = data.get('id')
+        print(f'user_id: {user_id}')
+        user = User.objects.get(id=user_id)
+        path = data.get('path')
+        note = Note.objects.get(user=user, path=data.get('path'))
+        current_index = note.current_index
+        print(f'current_index: {current_index}')
+        # save image
+        dir_path = f'./static/image/{user_id}/{path}'
+        import os
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        image_path = os.path.join(dir_path, str(current_index) + '_' + image.name)
+        with open(image_path, 'wb') as f:
+            for chunk in image.chunks():
+                f.write(chunk)
+        image_path = f' http://10.0.2.2:8000/static/image/{user_id}/{path}/{str(current_index) + "_" + image.name}'
+        ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
+        note.current_index += 1
+        note.save()
+
+
+
+
+    return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+     

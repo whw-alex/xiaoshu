@@ -411,6 +411,7 @@ public class NoteMainFragment extends Fragment{
                         public void onClick(View v) {
                             // todo: 跳转到NoteDetailActivity
                             Intent intent = new Intent(context, NoteDetailActivity.class);
+                            intent.putExtra("path", curPath+'/' + mTitle);
                             startActivity(intent);
                         }
                     });
