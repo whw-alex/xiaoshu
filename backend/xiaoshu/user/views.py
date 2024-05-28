@@ -348,11 +348,40 @@ def upload_note_image(request):
         TextSegment.objects.create(text='placeholder', note=note, seg_type='text', index=note.current_index)
         note.current_index += 1
         note.save()
-
-
-
-
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+
+def upload_note_audio(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        print("try to upload a new audio")
+        data = request.POST
+        print(f'data: {data}')
+        audio = request.FILES.get('file')
+        print(f'audio: {audio}')
+        user_id = data.get('id')
+        print(f'user_id: {user_id}')
+        user = User.objects.get(id=user_id)
+        path = data.get('path')
+        note = Note.objects.get(user=user, path=data.get('path'))
+        current_index = note.current_index
+        print(f'current_index: {current_index}')
+        # save audio
+        dir_path = f'./static/audio/{user_id}/{path}'
+        import os
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        audio_path = os.path.join(dir_path, str(current_index) + '_' + audio.name)
+        with open(audio_path, 'wb') as f:
+            for chunk in audio.chunks():
+                f.write(chunk)
+        audio_path = f'http://10.0.2.2:8000/static/audio/{user_id}/{path}/{str(current_index) + "_" + audio.name}'
+        AudioSegment.objects.create(audio=audio_path, note=note, seg_type='audio', index=current_index)
+        note.current_index += 1
+        note.save()
+        TextSegment.objects.create(text='placeholder', note=note, seg_type='text', index=note.current_index)
+        note.current_index += 1
+        note.save()
+    return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+
 
 def save_note_text(request):
     if request.method == 'POST':
