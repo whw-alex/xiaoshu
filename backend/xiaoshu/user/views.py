@@ -7,6 +7,7 @@ from .models import User, Folder, Note, TextSegment, ImageSegment, AudioSegment
 import json
 import jwt
 from datetime import datetime
+from time import sleep
 
 
 
@@ -341,7 +342,7 @@ def upload_note_image(request):
         with open(image_path, 'wb') as f:
             for chunk in image.chunks():
                 f.write(chunk)
-        image_path = f' http://10.0.2.2:8000/static/image/{user_id}/{path}/{str(current_index) + "_" + image.name}'
+        image_path = f'http://10.0.2.2:8000/static/image/{user_id}/{path}/{str(current_index) + "_" + image.name}'
         ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
         note.current_index += 1
         note.save()
@@ -403,3 +404,30 @@ def save_note_text(request):
         return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
     return HttpResponse('请求方式错误',status=400)
      
+
+def chat(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        messages = [{"role": "user", "content": data.get('prompt')}]
+        print("message:", messages)
+
+        from openai import OpenAI
+        client = OpenAI(
+            api_key = 'sk-CIvPbVOuIIdTR17Mw5SlxMpqkiivo3SKXZk9iZnXaUONAKET',
+            base_url = "https://api.moonshot.cn/v1",
+        )
+        
+        completion = client.chat.completions.create(
+            model = "moonshot-v1-8k",
+            messages = messages,
+        )
+        
+        print(completion.choices[0].message.content)
+        return HttpResponse(json.dumps({'answer': completion.choices[0].message.content}), status=200)
+
+        sleep(5)
+        return HttpResponse(json.dumps({'answer': '你要这么问，小术我百口莫辩！我不知道该说什么！'}), status=200)
+    
+    return HttpResponse('请求方式错误',status=400)
+    

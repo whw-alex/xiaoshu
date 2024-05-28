@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.*;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.IOException;
@@ -18,16 +19,26 @@ import java.util.*;
 import android.widget.*;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.ImageViewTarget;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
 import android.graphics.BitmapFactory;
 
 
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteList;
     private static final String BASE_URL = "http://10.0.2.2:8000/";
+    Context pageContext;
 
 
-    public NoteAdapter(List<NoteItem> noteList) {
+    public NoteAdapter(List<NoteItem> noteList, Context pageContext) {
+        this.pageContext = pageContext;
         this.noteList = noteList;
     }
     @Override
@@ -79,6 +90,12 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         NoteItem item = noteList.get(position);
         holder.itemView.setTag(item);
 
+        // 为最后一个item设置margin，以防止其紧贴底部
+        if (position == getItemCount() - 1) {
+            ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
+            float density = pageContext.getResources().getDisplayMetrics().density;
+            ((ViewGroup.MarginLayoutParams)params).bottomMargin = Math.round(200 * density);
+        }
 
         // 根据视图类型，更新相应的视图控件
         if (holder instanceof TextViewHolder) {
@@ -103,9 +120,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                 Log.d("NoteAdapter", "onBindViewHolder: " + item.getContent());
                 String url;
                 if (item.getContent().contains("static")) {
-                    Log.d("NoteAdapter","contains static");
                      url = item.getContent();
-                     Log.d("NoteAdapter", "onBindViewHolder url: " + url);
 //                     Picasso.get().load(url).into(imageViewHolder.imageView);
 //                    显示网络图片
 //                    Context context = imageViewHolder.imageView.getContext();
@@ -123,12 +138,37 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
-public int loadImageUrl(String url, ImageView imageView) {
-    // 使用 Picasso 加载图片
-    Picasso.get().load(url).into(imageView);
-    return 0;
+    private class FitX extends ImageViewTarget<Bitmap> {
+        private ImageView target;
+        public FitX(ImageView target) {
+            super(target);
+            this.target = target;
+        }
+        @Override
+        protected void setResource(Bitmap resource) {
+            view.setImageBitmap(resource);
+            //获取原图的宽高
+            int width = resource.getWidth();
+            int height = resource.getHeight();
+            //获取imageView的宽
+            int imageViewWidth = target.getWidth();
+            //计算缩放比例
+            float sy = (float) (imageViewWidth * 0.1) / (float) (width * 0.1);
+            //计算图片等比例放大后的高
+            int imageViewHeight = (int) (height * sy);
+            ViewGroup.LayoutParams params = target.getLayoutParams();
+            params.height = imageViewHeight;
+            target.setLayoutParams(params);
+        }
+    }
 
-}
+    public int loadImageUrl(String url, ImageView imageView) {
+        url = url.trim();
+        Picasso.get()
+                .load(url)
+                .into(imageView);
+        return 0;
+    }
 
     @Override
     public int getItemCount() {

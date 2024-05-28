@@ -8,16 +8,22 @@
         android:title="插入语音"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/item_choose_photo"
+        android:icon="@drawable/ic_photo_library"
+        android:title="相册选择"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/item_take_photo"
         android:icon="@drawable/ic_camera"
         android:title="相机拍照"
         app:showAsAction="ifRoom" />
+
     <item
-        android:id="@+id/item_choose_photo"
+        android:id="@+id/item_expand_ai"
         android:icon="@drawable/ic_photo_library"
-        android:title="相册选择"
+        android:title="AI对话"
         app:showAsAction="ifRoom" />
 <!--    <item-->
 <!--        android:id="@+id/item_delete"-->
