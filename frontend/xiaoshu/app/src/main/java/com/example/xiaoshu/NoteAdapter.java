@@ -3,6 +3,8 @@ package com.example.xiaoshu;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.*;
 
@@ -71,16 +73,21 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         NoteItem item = noteList.get(position);
+        holder.itemView.setTag(item);
+
 
         // 根据视图类型，更新相应的视图控件
         if (holder instanceof TextViewHolder) {
             TextViewHolder textViewHolder = (TextViewHolder) holder;
+            textViewHolder.bindItem(item);
             textViewHolder.editText.setText(item.getContent());
         } else if (holder instanceof AudioViewHolder) {
             AudioViewHolder audioViewHolder = (AudioViewHolder) holder;
+            audioViewHolder.bindItem(item);
             // 设置音频播放相关的逻辑
         } else if (holder instanceof ImageViewHolder) {
             ImageViewHolder imageViewHolder = (ImageViewHolder) holder;
+            imageViewHolder.bindItem(item);
             // 设置图片相关的逻辑
 //            Picasso.get().load(item.getContent()).into(imageViewHolder.imageView);
             if (item.getContent().equals("")){
@@ -125,12 +132,38 @@ public int loadImageUrl(String url, ImageView imageView) {
     }
 
     // 定义文本类型的视图持有者
-    private static class TextViewHolder extends RecyclerView.ViewHolder {
+    public static class TextViewHolder extends RecyclerView.ViewHolder {
         EditText editText;
+        NoteItem item;
+
+        void bindItem(NoteItem item) {
+            this.item = item;
+            editText.setText(item.getContent());
+        }
 
         TextViewHolder(@NonNull View itemView) {
             super(itemView);
             editText = itemView.findViewById(R.id.editText);
+            editText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    item.setContent(s.toString());
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // 更新数据源中的文本内容
+                    // 例如，可以使用 set 方法更新 NoteItem 对象中的文本内容
+//                    NoteItem item = (NoteItem) editText.getTag();
+                    item.setContent(s.toString());
+
+                }
+            });
         }
     }
 
@@ -138,7 +171,10 @@ public int loadImageUrl(String url, ImageView imageView) {
     private static class AudioViewHolder extends RecyclerView.ViewHolder {
         // 定义音频播放相关的视图控件
         // 例如，MediaPlayer、播放按钮等等
-
+        NoteItem item;
+        void bindItem(NoteItem item) {
+            this.item = item;
+        }
         AudioViewHolder(@NonNull View itemView) {
             super(itemView);
             // 初始化音频播放相关的视图控件
@@ -148,6 +184,10 @@ public int loadImageUrl(String url, ImageView imageView) {
     // 定义图片类型的视图持有者
     private static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
+        NoteItem item;
+        void bindItem(NoteItem item) {
+            this.item = item;
+        }
 
         ImageViewHolder(@NonNull View itemView) {
             super(itemView);

@@ -308,6 +308,10 @@ def create_file(request):
                 print("重复！")
                 return HttpResponse(json.dumps({'msg': '文件名重复！'}), status=400)
             Note.objects.create(title="", user=user, name=name, parent=parent, path=path)
+            TextSegment.objects.create(text='placeholder', note=Note.objects.get(user=user, path=path), seg_type='text', index=0)
+            note = Note.objects.get(user=user, path=path)
+            note.current_index = 1
+            note.save()
 
         return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
             
@@ -341,9 +345,32 @@ def upload_note_image(request):
         ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
         note.current_index += 1
         note.save()
+        TextSegment.objects.create(text='placeholder', note=note, seg_type='text', index=note.current_index)
+        note.current_index += 1
+        note.save()
 
 
 
 
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+
+def save_note_text(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+        user_id = data.get('id')
+        path = data.get('path')
+        textList = data.get('textList')
+        user = User.objects.get(id=user_id)
+        note = Note.objects.get(user=user, path=path)
+        for text_pair in textList:
+            index = text_pair.get('first')
+            content = text_pair.get('second')
+            print(f'index: {index}, content: {content}')
+            text = TextSegment.objects.get(note=note, index=index)
+            text.text = content
+            text.save()
+        return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+    return HttpResponse('请求方式错误',status=400)
      
