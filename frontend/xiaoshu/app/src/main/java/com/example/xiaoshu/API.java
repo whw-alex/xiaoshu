@@ -56,6 +56,9 @@ public interface API {
     @POST("user/upload_note_image/")
     Call<AddFileResponse> uploadImage(@Body RequestBody photo);
 
+    @POST("user/upload_note_audio/")
+    Call<AddFileResponse> uploadAudio(@Body RequestBody audio);
+
     @POST("user/save_note_text/")
     Call<AddFileResponse> saveNoteText(@Body SaveNoteTestRequest saveNoteTestRequest);
 
