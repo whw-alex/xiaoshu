@@ -93,7 +93,7 @@ public class TestActivity extends  AppCompatActivity{
                     noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, "image2.jpg"));
 
                     // 创建并设置适配器
-                    noteAdapter = new NoteAdapter(noteList);
+                    noteAdapter = new NoteAdapter(noteList, getApplicationContext());
                     recyclerView.setAdapter(noteAdapter);
                 }
             }

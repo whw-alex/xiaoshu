@@ -8,9 +8,11 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 
+import com.example.xiaoshu.Request.AIChatRequest;
 import com.example.xiaoshu.Request.FileListRequest;
 import com.example.xiaoshu.Request.UserRequest;
 import com.example.xiaoshu.Request.AddFileRequest;
+import com.example.xiaoshu.Response.AIChatResponse;
 import com.example.xiaoshu.Response.AddFileResponse;
 import com.example.xiaoshu.Response.FilelistResponse;
 import com.example.xiaoshu.Response.UserResponse;
@@ -58,6 +60,9 @@ public interface API {
 
     @POST("user/save_note_text/")
     Call<AddFileResponse> saveNoteText(@Body SaveNoteTestRequest saveNoteTestRequest);
+
+    @POST("user/chat/")
+    Call<AIChatResponse> chatWithAI(@Body AIChatRequest AIChatRequest);
 
     class Creator {
         public static API createApiService() {

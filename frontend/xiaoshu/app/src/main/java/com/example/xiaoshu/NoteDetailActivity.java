@@ -3,6 +3,8 @@ package com.example.xiaoshu;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -13,6 +15,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
+import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,9 +30,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.xiaoshu.R;
+import com.example.xiaoshu.Request.AIChatRequest;
 import com.example.xiaoshu.Request.AddFileRequest;
 import com.example.xiaoshu.Request.NoteDetailRequest;
 import com.example.xiaoshu.Request.SaveNoteTestRequest;
+import com.example.xiaoshu.Response.AIChatResponse;
 import com.example.xiaoshu.Response.AddFileResponse;
 import com.example.xiaoshu.Response.NoteInfoResponse;
 import com.example.xiaoshu.Response.NoteItemResponse;
@@ -64,6 +69,10 @@ import java.io.File;
 import java.util.Locale;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.kongzue.dialogx.dialogs.BottomDialog;
+import com.kongzue.dialogx.interfaces.OnBindView;
+import com.kongzue.dialogx.interfaces.OnDialogButtonClickListener;
+
 import android.Manifest;
 
 
@@ -84,6 +93,15 @@ public class NoteDetailActivity extends  AppCompatActivity{
     // 是否是Android 10以上手机
     private boolean isAndroidQ = Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q;
 
+    // 以下是关于AI对话框的状态变量
+    private enum DIALOG_STATE {
+        INIT,
+        CLOSE,
+        WAIT_FOR_ANSWER,
+        OBTAINED_ANSWER
+    }
+    private DIALOG_STATE state;
+    private View dialog_ai;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -146,7 +164,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
 //                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
 
                     // 创建并设置适配器
-                    noteAdapter = new NoteAdapter(noteList);
+                    noteAdapter = new NoteAdapter(noteList, getApplicationContext());
                     recyclerView.setAdapter(noteAdapter);
                 }
             }
@@ -198,6 +216,9 @@ public class NoteDetailActivity extends  AppCompatActivity{
                         item.setIcon(R.drawable.ic_audio);
                     }
                     return true;
+
+                } else if (itemId == R.id.item_expand_ai) {
+                    expandAIWindow();
                 }
 
                 return false;
@@ -446,4 +467,109 @@ public class NoteDetailActivity extends  AppCompatActivity{
         });
     }
 
+    private void expandAIWindow() {
+        BottomDialog.show("AI对话", "",
+            new OnBindView<BottomDialog>(R.layout.dialog_ai) {
+                @Override
+                public void onBind(BottomDialog dialog, View v) {
+                    state = DIALOG_STATE.INIT;
+                    dialog_ai = v;
+                }
+            })
+            .setOtherButton("发送", new OnDialogButtonClickListener<BottomDialog>() {
+                @Override
+                public boolean onClick(BottomDialog baseDialog, View v) {
+                    assert state != DIALOG_STATE.CLOSE;
+                    // 判断状态，获取输入
+                    if (state == DIALOG_STATE.WAIT_FOR_ANSWER) {
+                        Toast.makeText(getApplicationContext(),
+                                "小术正在上一个问题，请稍等~",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    EditText editText = dialog_ai.findViewById(R.id.prompt);
+                    String question = editText.getText().toString();
+                    if (question.isEmpty()) {
+                        Toast.makeText(getApplicationContext(),
+                                "请输入您的问题！",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+
+                    // 设置界面，更新状态
+                    TextView answer = dialog_ai.findViewById(R.id.answer);
+                    answer.setText("小术已经收到了您的问题，请稍作等待~");
+                    answer.setTextColor(ContextCompat.getColor(getApplicationContext(),
+                            com.kongzue.dialogx.R.color.black40));
+                    state = DIALOG_STATE.WAIT_FOR_ANSWER;
+
+                    // 发送请求，获取AI对话结果
+                    API api = API.Creator.createApiService();
+                    Call<AIChatResponse> call = api.chatWithAI(new AIChatRequest(question, noteList));
+                    call.enqueue(new Callback<AIChatResponse>() {
+                        @Override
+                        public void onResponse(Call<AIChatResponse> call, Response<AIChatResponse> response) {
+                            if(state != DIALOG_STATE.WAIT_FOR_ANSWER) {
+                                return;
+                            }
+                            // 请求成功，记录答案并
+                            AIChatResponse aiResponse = response.body();
+                            TextView answer = dialog_ai.findViewById(R.id.answer);
+                            answer.setText(aiResponse.getAnswer());
+                            answer.setTextColor(ContextCompat.getColor(getApplicationContext(),
+                                    com.kongzue.dialogx.R.color.black));
+                            state = DIALOG_STATE.OBTAINED_ANSWER;
+                        }
+
+                        @Override
+                        public void onFailure(Call<AIChatResponse> call, Throwable t) {
+                            // 请求失败
+                            Log.d("TestActivity", "Error: " + t.getMessage());
+                            Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
+                            answer.setText("小术AI为您服务~");
+                            answer.setTextColor(ContextCompat.getColor(getApplicationContext(),
+                                    com.kongzue.dialogx.R.color.black40));
+                            state = DIALOG_STATE.INIT;
+                        }
+                    });
+
+                    return true;
+                }
+            })
+            .setCancelButton("复制回答", new OnDialogButtonClickListener<BottomDialog>() {
+                @Override
+                public boolean onClick(BottomDialog baseDialog, View v) {
+                    assert state != DIALOG_STATE.CLOSE;
+                    if (state == DIALOG_STATE.INIT) {
+                        Toast.makeText(getApplicationContext(),
+                                "请输入您的问题并发送~",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    else if (state == DIALOG_STATE.WAIT_FOR_ANSWER) {
+                        Toast.makeText(getApplicationContext(),
+                                "小术还在思考如何回答，请您稍等~",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+
+                    // 复制问题到剪切板
+                    ClipboardManager manager = (ClipboardManager) getApplicationContext()
+                                                .getSystemService(Context.CLIPBOARD_SERVICE);
+                    TextView answer = dialog_ai.findViewById(R.id.answer);
+                    ClipData answerData = ClipData.newPlainText("Answering", answer.getText().toString());
+                    manager.setPrimaryClip(answerData);
+//                        Toast.makeText(getApplicationContext(), "已复制回答到剪贴板",
+//                                Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            })
+            .setOkButton("取消", new OnDialogButtonClickListener<BottomDialog>() {
+                @Override
+                public boolean onClick(BottomDialog baseDialog, View v) {
+                    state = DIALOG_STATE.CLOSE;
+                    return false;
+                }
+            });
+    }
 }

@@ -13,6 +13,7 @@ urlpatterns = [
     path('note_info/', views.note_info),
     path('upload_note_image/', views.upload_note_image),
     path('save_note_text/', views.save_note_text),
+    path('chat/', views.chat),
 ]
 
 # add static
