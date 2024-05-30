@@ -35,6 +35,7 @@ import com.example.xiaoshu.Request.AIChatRequest;
 import com.example.xiaoshu.Request.AddFileRequest;
 import com.example.xiaoshu.Request.NoteDetailRequest;
 import com.example.xiaoshu.Request.SaveNoteTestRequest;
+import com.example.xiaoshu.Request.UploadFakeImageRequest;
 import com.example.xiaoshu.Response.AIChatResponse;
 import com.example.xiaoshu.Response.AddFileResponse;
 import com.example.xiaoshu.Response.NoteInfoResponse;
@@ -164,7 +165,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     }
                     // 创建笔记内容列表
 //                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是一段文本内容"));
-                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio.mp3"));
+//                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio.mp3"));
 //                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "这是另一段文本内容"));
 //                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, "audio2.mp3"));
 //                    noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, ""));
@@ -245,6 +246,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
 //            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
+            uploadFakeImage();
             uploadImage(mCameraUri);
         }
         else if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
@@ -255,6 +257,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
 //            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
+            uploadFakeImage();
             uploadImage(uri);
         }
     }
@@ -474,6 +477,32 @@ public class NoteDetailActivity extends  AppCompatActivity{
         }
     }
 
+    public void uploadFakeImage()
+    {
+        API api = API.Creator.createApiService();
+        SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int id = sharedPreferences.getInt("id", 0);
+        Call<AddFileResponse> call = api.uploadFakeImage(new UploadFakeImageRequest(id, path));
+        call.enqueue(new Callback<AddFileResponse>() {
+            @Override
+            public void onResponse(Call<AddFileResponse> call, Response<AddFileResponse> response) {
+                if(response.isSuccessful())
+                {
+                    AddFileResponse addFileResponse = response.body();
+                    Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AddFileResponse> call, Throwable t) {
+                // 请求失败
+                Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
+            }
+        });
+
+    }
     public void uploadImage(Uri uri) {
         try {
             InputStream is = getContentResolver().openInputStream(uri);

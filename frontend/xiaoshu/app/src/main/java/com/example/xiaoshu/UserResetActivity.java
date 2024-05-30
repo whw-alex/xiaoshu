@@ -18,6 +18,7 @@ import android.content.SharedPreferences;
 
 import com.example.xiaoshu.Request.ResetPasswordRequest;
 import com.example.xiaoshu.Response.ResetPasswordResponse;
+import com.google.android.material.appbar.MaterialToolbar;
 
 public class UserResetActivity extends AppCompatActivity{
     TextView old_password;
@@ -25,10 +26,15 @@ public class UserResetActivity extends AppCompatActivity{
     TextView confirm_password;
     Button save;
     Button cancel;
+    MaterialToolbar topAppBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.user_reset);
+        topAppBar = findViewById(R.id.topAppBar);
+        topAppBar.setNavigationOnClickListener(v -> {
+            finish();
+        });
         old_password = findViewById(R.id.old_password);
         new_password = findViewById(R.id.new_password);
         confirm_password = findViewById(R.id.confirm_password);

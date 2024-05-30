@@ -26,6 +26,7 @@ import com.example.xiaoshu.Response.ProfileResponse;
 import com.example.xiaoshu.Request.ResetPasswordRequest;
 import com.example.xiaoshu.Response.ResetPasswordResponse;
 import com.example.xiaoshu.Request.SaveNoteTestRequest;
+import com.example.xiaoshu.Request.UploadFakeImageRequest;
 import java.util.List;
 
 
@@ -57,6 +58,12 @@ public interface API {
 
     @POST("user/upload_note_image/")
     Call<AddFileResponse> uploadImage(@Body RequestBody photo);
+
+    @POST("user/upload_note_fake_image/")
+    Call<AddFileResponse> uploadFakeImage(@Body UploadFakeImageRequest request);
+
+    @POST("user/upload_profile_image/")
+    Call<AddFileResponse> uploadProfileImage(@Body RequestBody photo);
 
     @POST("user/upload_note_audio/")
     Call<AddFileResponse> uploadAudio(@Body RequestBody audio);

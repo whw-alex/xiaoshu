@@ -8,6 +8,7 @@ import json
 import jwt
 from datetime import datetime
 from time import sleep
+from django.conf import settings
 
 
 
@@ -342,7 +343,35 @@ def upload_note_image(request):
         with open(image_path, 'wb') as f:
             for chunk in image.chunks():
                 f.write(chunk)
-        image_path = f'http://10.0.2.2:8000/static/image/{user_id}/{path}/{str(current_index) + "_" + image.name}'
+        image_path = f'{settings.BASE_URL}/static/image/{user_id}/{path}/{str(current_index) + "_" + image.name}'
+        image_list = ImageSegment.objects.filter(note=note)
+        for i in image_list:
+            if i.image.__contains__('fake.jpg'):
+                i.image = image_path
+                i.save()
+                return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+            
+        # ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
+        # note.current_index += 1
+        # note.save()
+        # TextSegment.objects.create(text='placeholder', note=note, seg_type='text', index=note.current_index)
+        # note.current_index += 1
+        # note.save()
+    return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+
+def upload_note_fake_image(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+        user_id = data.get('id')
+        path = data.get('path')
+        user = User.objects.get(id=user_id)
+        note = Note.objects.get(user=user, path=path)
+        current_index = note.current_index
+        print(f'current_index: {current_index}')
+        # save image
+        image_path = f'{settings.BASE_URL}/static/image/fake.jpg'
         ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
         note.current_index += 1
         note.save()
@@ -374,7 +403,7 @@ def upload_note_audio(request):
         with open(audio_path, 'wb') as f:
             for chunk in audio.chunks():
                 f.write(chunk)
-        audio_path = f'http://10.0.2.2:8000/static/audio/{user_id}/{path}/{str(current_index) + "_" + audio.name}'
+        audio_path = f'{settings.BASE_URL}/static/audio/{user_id}/{path}/{str(current_index) + "_" + audio.name}'
         AudioSegment.objects.create(audio=audio_path, note=note, seg_type='audio', index=current_index)
         note.current_index += 1
         note.save()
@@ -431,3 +460,23 @@ def chat(request):
     
     return HttpResponse('请求方式错误',status=400)
     
+def upload_profile_image(request):  
+    if request.method == 'POST' and request.FILES.get('file'):
+        data = request.POST
+        print(f'data: {data}')
+        image = request.FILES.get('file')
+        user_id = data.get('id')
+        print(f'user_id: {user_id}')
+        user = User.objects.get(id=user_id)
+        # save image
+        dir_path = f'./static/avatar/{user_id}'
+        import os
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        image_path = os.path.join(dir_path, image.name)
+        with open(image_path, 'wb') as f:
+            for chunk in image.chunks():
+                f.write(chunk)
+        user.avatar = f'{settings.BASE_URL}/static/avatar/{user_id}/{image.name}'
+        user.save()
+    return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)

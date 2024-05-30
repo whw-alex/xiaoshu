@@ -238,6 +238,13 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
                     }
                 });
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        playButton.setImageResource(R.drawable.ic_play_circle);
+                        mediaPlayer.seekTo(0);
+                    }
+                });
                 mediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
