@@ -525,11 +525,12 @@ def save_note_text(request):
             print(f'index: {index}, content: {content}')
             if index == -1:
                 print("新建文本")
-                old_title = note.title
-                print(old_title)
+                # old_title = note.title
                 note.title = content
                 note.name = content
-                note.path = note.path.replace(old_title, content)
+                note.path = note.path.split('/')[:-1] + '/' + content  
+                print(f'new path: {note.path}')  
+                # note.path = note.path.replace(old_title, content)
                 note.save()
             else:
                 text = TextSegment.objects.get(note=note, index=index)
