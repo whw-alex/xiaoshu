@@ -374,12 +374,12 @@ def create_file(request):
             if Folder.objects.filter(user=user, name=name, parent=parent).exists():
                 print("重复！")
                 return HttpResponse(json.dumps({'msg': '文件名重复！'}), status=400)
-            Folder.objects.create(title="", user=user, name=name, parent=parent, path=path)
+            Folder.objects.create(title=name, user=user, name=name, parent=parent, path=path)
         else:
             if Note.objects.filter(user=user, name=name, parent=parent).exists():
                 print("重复！")
                 return HttpResponse(json.dumps({'msg': '文件名重复！'}), status=400)
-            Note.objects.create(title="", user=user, name=name, parent=parent, path=path)
+            Note.objects.create(title=name, user=user, name=name, parent=parent, path=path)
             TextSegment.objects.create(text='placeholder', note=Note.objects.get(user=user, path=path), seg_type='text', index=0)
             note = Note.objects.get(user=user, path=path)
             note.current_index = 1
@@ -526,6 +526,7 @@ def save_note_text(request):
             if index == -1:
                 print("新建文本")
                 old_title = note.title
+                print(old_title)
                 note.title = content
                 note.name = content
                 note.path = note.path.replace(old_title, content)

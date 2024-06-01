@@ -630,6 +630,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
                     String new_title = ((EditText) findViewById(R.id.title)).getText().toString();
                     Intent intent = new Intent();
+                    intent.putExtra("success", true);
                     intent.putExtra("title", new_title);
                     setResult(RESULT_OK, intent);
                     finish();
@@ -637,6 +638,9 @@ public class NoteDetailActivity extends  AppCompatActivity{
                 else
                 {
                     Log.d("NoteDetailActivity", "Error: " + response.message());
+                    Intent intent = new Intent();
+                    intent.putExtra("success", false);
+                    setResult(RESULT_OK, intent);
                     Toasty.error(NoteDetailActivity.this, "Error: " + response.message(), Toast.LENGTH_SHORT, true).show();
                     finish();
                 }
@@ -646,6 +650,9 @@ public class NoteDetailActivity extends  AppCompatActivity{
             public void onFailure(Call<AddFileResponse> call, Throwable t) {
                 // 请求失败
                 Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                Intent intent = new Intent();
+                intent.putExtra("success", false);
+                setResult(RESULT_OK, intent);
                 Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
                 finish();
 
