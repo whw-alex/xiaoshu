@@ -7,6 +7,7 @@
     android:focusableInTouchMode="true"
     tools:context=".MainActivity">
 
+
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
@@ -37,7 +38,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
+                android:textStyle="bold"
                 android:text="Xiao Shu "
                 android:textSize="32sp" />
 
@@ -51,13 +52,34 @@
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
+                android:textStyle="bold"
                 android:text="Note"
                 android:textSize="32sp" />
         </LinearLayout>
 
 
     </LinearLayout>
+    <androidx.cardview.widget.CardView
+        android:id="@+id/imageView3"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_below="@id/linearLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        app:cardBackgroundColor="#E8FCF4"
+        app:cardCornerRadius="40dp"
+        >
+
+        <ImageView
+            android:id="@+id/avatar"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:src="@drawable/new_logo"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"
+            android:background="#E8FCF4"/>
+
+    </androidx.cardview.widget.CardView>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
