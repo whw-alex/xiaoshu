@@ -615,7 +615,7 @@ public class NoteMainFragment extends Fragment{
                                 path = curPath + '/' + mTitle;
                             }
 
-
+                            fileOpened = true;
                             Intent intent = new Intent(context, NoteDetailActivity.class);
                             intent.putExtra("path", path);
                             startActivityForResult(intent, 1);

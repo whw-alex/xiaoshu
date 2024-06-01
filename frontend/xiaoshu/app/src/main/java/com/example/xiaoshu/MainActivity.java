@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import java.util.*;
 import androidx.annotation.*;
@@ -70,13 +71,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == 1) {//接收后面一个界面结果码为1的界面
+        if (resultCode == RESULT_OK) { //接收后面一个界面结果码为1的界面
             Bundle bundle = data.getExtras();
-            Boolean success = bundle.getBoolean("success");
-            if(success) {
-                ((NoteMainFragment)tabFragmentList.get(0))
-                        .closeAndRefresh(bundle.getString("title"));
-            }
+            ((NoteMainFragment)tabFragmentList.get(0))
+                    .closeAndRefresh(bundle.getString("title"));
+
         }
 
     }
