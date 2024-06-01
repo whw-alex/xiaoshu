@@ -3,9 +3,12 @@ from django.shortcuts import render
 # Create your views here.
 from django.http import HttpResponse
 from django.http import HttpRequest
+from django.core.exceptions import ObjectDoesNotExist
 from .models import User, Folder, Note, TextSegment, ImageSegment, AudioSegment
+import bisect
 import json
 import jwt
+from fuzzywuzzy import fuzz
 from datetime import datetime
 from time import sleep
 
@@ -274,6 +277,7 @@ def file_list(request):
             except:
                 data_json['contents'].append('')
             data_json['dates'].append(note.modified_time.strftime("%m月%d号"))
+            print(note.path)
 
         # data_json = {
         #     "labels": ["folder", "note", "note"],
@@ -283,6 +287,71 @@ def file_list(request):
         # }
         print(data_json)
         return HttpResponse(json.dumps(data_json),status=200)
+
+
+def search_file_list(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+
+        user_id = data.get('id')
+        keyword: str = data.get('keyword')
+        respond = {
+            "titles": [],
+            "contents": [],
+            "dates": [],
+            "paths": [],
+            "scores": []
+        }
+
+        user = User.objects.get(id=user_id)
+        notes = Note.objects.filter(user=user)
+        kws = keyword.split()
+        threshold = 60
+        for note in notes:
+            # 获取笔记内容
+            content = ""
+            try:
+                textSegs = TextSegment.objects.filter(note=note)
+                for text in textSegs:
+                    content += text.text
+            except:
+                pass
+            
+            # 统计匹配度
+            average = 0
+            maximum = 0
+            for kw in kws:
+                cur_score = fuzz.partial_ratio(kw, content)
+                maximum = max(maximum, cur_score)
+                average += cur_score
+            average /= len(kws)
+            total_score = 0.7 * maximum + 0.3 * average
+
+            # 记录匹配文件信息
+            if total_score >= threshold:
+                pos = 0
+                for i in range(0, len(respond['scores']) + 1):
+                    if i == len(respond['scores']) or \
+                       respond['scores'][i] < total_score:
+                        pos = i
+                        break
+                respond['scores'].insert(pos, total_score)
+
+                respond['titles'].insert(pos, note.name)
+                try:
+                    first_text = TextSegment.objects.filter(note=note).first()
+                    respond['contents'].insert(pos, first_text.text[:4]+'...')
+                except:
+                    respond['contents'].insert(pos, '')
+                respond['dates'].insert(pos, note.modified_time.strftime("%m月%d号"))
+                respond['paths'].insert(pos, note.path)
+
+            print(content, total_score)
+
+        print(respond)
+        return HttpResponse(json.dumps(respond),status=200)
 
 
 def create_file(request):
@@ -315,8 +384,32 @@ def create_file(request):
             note.save()
 
         return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+    
+    return HttpResponse(json.dumps({'msg': '请求方式错误'}),status=400)
             
-        
+
+def delete_file(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+
+        user_id = data.get('id')
+        path = data.get('path')
+        label = data.get('type')
+
+        try:
+            user = User.objects.get(id=user_id)
+            file = Folder.objects.get(user=user, path=path) if label == "folder" \
+                   else Note.objects.get(user=user, path=path)
+            file.delete()
+            return HttpResponse(json.dumps({'msg': '删除成功！'}),status=200)
+        except ObjectDoesNotExist:
+            return HttpResponse(json.dumps({'msg': '所删文件不存在'}),status=400)
+    
+    return HttpResponse(json.dumps({'msg': '请求方式错误'}),status=400)
+
+
 def upload_note_image(request):
     print("try to upload a new image")
     print(f'request: {request}')

@@ -1,9 +1,8 @@
-package com.example.xiaoshu;
+package com.example.xiaoshu.ui.fragments;
 
 import androidx.fragment.app.Fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,7 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.*;
-import androidx.recyclerview.widget.*;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.net.Uri;
@@ -19,11 +18,10 @@ import android.net.Uri;
 
 import com.example.xiaoshu.R;
 import android.content.Intent;
-import android.os.Bundle;
+
+import com.example.xiaoshu.StartActivity;
 import com.example.xiaoshu.UserEditActivity;
 import com.example.xiaoshu.UserResetActivity;
-
-import java.util.*;
 
 public class UserFragment extends Fragment{
     ImageView imageView_edit;

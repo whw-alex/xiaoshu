@@ -1,5 +1,5 @@
 
-package com.example.xiaoshu.ui.note;
+package com.example.xiaoshu.ui.fragments;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -10,11 +10,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import static android.content.Context.MODE_PRIVATE;
-import android.content.ContextWrapper;
+
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -24,6 +26,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 
+import com.arlib.floatingsearchview.FloatingSearchView;
+import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.example.xiaoshu.API;
 import com.example.xiaoshu.R;
 
@@ -31,14 +35,18 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import com.example.xiaoshu.NoteDetailActivity;
+import com.example.xiaoshu.Request.DeleteFileRequest;
 import com.example.xiaoshu.Request.FileListRequest;
-import com.example.xiaoshu.Request.LoginRequest;
 import com.example.xiaoshu.Request.AddFileRequest;
+import com.example.xiaoshu.Request.SearchRequest;
 import com.example.xiaoshu.Response.AddFileResponse;
+import com.example.xiaoshu.Response.DeleteFileResponse;
 import com.example.xiaoshu.Response.FilelistResponse;
-import com.example.xiaoshu.Response.LoginResponse;
-import com.example.xiaoshu.StartActivity;
+import com.example.xiaoshu.Response.SearchResponse;
 import com.getbase.floatingactionbutton.*;
+import com.kongzue.dialogx.dialogs.CustomDialog;
+import com.kongzue.dialogx.dialogs.MessageDialog;
+import com.kongzue.dialogx.interfaces.OnBindView;
 
 
 import android.content.Intent;
@@ -46,8 +54,6 @@ import android.content.Intent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import es.dmoral.toasty.Toasty;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -66,6 +72,10 @@ public class NoteMainFragment extends Fragment{
     Integer usrid;
     String curPath = "root";
 
+    boolean doneSearch = false;
+    boolean inSearch = false;
+    ArrayList<String> paths;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -83,19 +93,37 @@ public class NoteMainFragment extends Fragment{
         // 获取文件列表
         SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("login_status", MODE_PRIVATE);
         usrid = sharedPreferences.getInt("id", 0);
-        mRecyclerAdapter.gotoPath(curPath);
+        mRecyclerAdapter.gotoPath(curPath, false);
 
         // 设置返回按钮
         View back = view.findViewById(R.id.back_arrow);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int back =  curPath.lastIndexOf('/');
-                if (back != -1) {
-                    curPath = curPath.substring(0, back);
+                if (inSearch) {
+                    if(doneSearch){
+                        Drawable img = ContextCompat.getDrawable(getContext(), R.drawable.ic_arrow_back);
+                        ((ImageView)mPage.findViewById(R.id.back_arrow)).setImageDrawable(img);
+                        mRecyclerAdapter.gotoPath(curPath, true);
+
+                        inSearch = doneSearch = false;
+                        Toast.makeText(getContext(), ">   " + curPath, Toast.LENGTH_SHORT);
+                        ((TextView)mPage.findViewById(R.id.cur_path))
+                                .setText(">   " + curPath);
+                    }
+                    else {
+                        inSearch = doneSearch = false;
+                    }
+
                 }
-                mRecyclerAdapter.gotoPath(curPath);
-                ((TextView)mPage.findViewById(R.id.cur_path)).setText(">  " + curPath);
+                else {
+                    int back =  curPath.lastIndexOf('/');
+                    if (back != -1) {
+                        curPath = curPath.substring(0, back);
+                    }
+                    mRecyclerAdapter.gotoPath(curPath, false);
+                    ((TextView)mPage.findViewById(R.id.cur_path)).setText(">  " + curPath);
+                }
             }
         });
 
@@ -171,6 +199,68 @@ public class NoteMainFragment extends Fragment{
                 })
             .create();
 
+        // 设置搜索框
+        FloatingSearchView search = view.findViewById(R.id.search);
+//        search.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
+//            @Override
+//            public void onSearchTextChanged(String oldQuery, final String newQuery) {
+//
+//            }
+//        });
+        search.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+            @Override
+            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                return;
+            }
+
+            @Override
+            public void onSearchAction(String currentQuery) {
+                Drawable img = ContextCompat.getDrawable(getContext(), R.drawable.ic_cross);
+                ((ImageView)mPage.findViewById(R.id.back_arrow)).setImageDrawable(img);
+                inSearch = true;
+                doneSearch = false;
+
+                // 与后端通信
+                API api = API.Creator.createApiService();
+                SearchRequest request = new SearchRequest(usrid, search.getQuery());
+                Call<SearchResponse> call = api.get_search_result(request);
+                call.enqueue(new Callback<SearchResponse>() {
+                    @Override
+                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
+                        if(response.isSuccessful()){
+                            if (! inSearch) return;
+                            doneSearch = true;
+
+                            mRecyclerAdapter.replaceFileList(response.body().get_file_list(), false);
+                            paths = response.body().get_paths();
+
+                            // 维护状态
+                            ((TextView)mPage.findViewById(R.id.cur_path))
+                                    .setText(">   " + "Search: " + search.getQuery());
+                            search.clearQuery();
+
+                        }
+                        else {
+                            try {
+                                JSONObject r = new JSONObject(response.errorBody().string());
+                                Toast.makeText(mPage.getContext(), r.getString("msg"),
+                                        Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SearchResponse> call, Throwable t) {
+
+                    }
+                });
+            }
+        });
+
         return view;
     }
 
@@ -180,7 +270,8 @@ public class NoteMainFragment extends Fragment{
             FOLDER,
             NOTE,
             PLACEHOLDER,
-            BUTTON;
+            BUTTON,
+            EMPTYSEARCH
         }
 
         public String title;
@@ -233,8 +324,11 @@ public class NoteMainFragment extends Fragment{
             else if (viewType == File.FileType.NOTE.ordinal() || viewType == File.FileType.FOLDER.ordinal()) {
                 itemView = LayoutInflater.from(context).inflate(R.layout.item_file_card, parent, false);
             }
-            else {
+            else if (viewType == File.FileType.BUTTON.ordinal()){
                 itemView = LayoutInflater.from(context).inflate(R.layout.item_add_file, parent, false);
+            }
+            else {
+                itemView = LayoutInflater.from(context).inflate(R.layout.item_search_empty, parent, false);
             }
 
             return new FileViewHodler(itemView, viewType);
@@ -263,6 +357,7 @@ public class NoteMainFragment extends Fragment{
                     break;
                 case PLACEHOLDER:
                 case BUTTON:
+                case EMPTYSEARCH:
                     break;
             }
 
@@ -278,7 +373,7 @@ public class NoteMainFragment extends Fragment{
             return file_list.size();
         }
 
-        public void gotoPath(String path) {
+        public void gotoPath(String path, boolean out_search) {
             API api = API.Creator.createApiService();
             FileListRequest request = new FileListRequest(usrid, path);
             Call<FilelistResponse> call = api.get_file_list(request);
@@ -287,7 +382,9 @@ public class NoteMainFragment extends Fragment{
                 public void onResponse(Call<FilelistResponse> call, Response<FilelistResponse> response) {
                     // print response body
                     FilelistResponse filelistResponse = response.body();
-                    mRecyclerAdapter.replaceFileList(filelistResponse.get_file_list());
+                    if (out_search) mRecyclerAdapter.replaceFileList(filelistResponse.get_file_list(), true);
+                    else mRecyclerAdapter.replaceFileList(filelistResponse.get_file_list());
+
                 }
 
                 @Override
@@ -309,6 +406,33 @@ public class NoteMainFragment extends Fragment{
             for (File f : new_list) {
                 index++;
                 file_list.add(index, f);
+                notifyItemInserted(index);
+            }
+        }
+
+        public void replaceFileList(ArrayList<File> new_list, boolean out) {
+            int index = file_list.size() - 1;
+
+            while (index > 0) {
+                file_list.remove(index);
+                notifyItemRemoved(index);
+                index--;
+            }
+
+            for (File f : new_list) {
+                index++;
+                file_list.add(index, f);
+                notifyItemInserted(index);
+            }
+
+            if (! out && new_list.size() == 0) {
+                index++;
+                file_list.add(index, new File(File.FileType.EMPTYSEARCH, "", "", ""));
+            }
+
+            if (out) {
+                index++;
+                file_list.add(index, new File(File.FileType.BUTTON, "", "", ""));
                 notifyItemInserted(index);
             }
         }
@@ -372,6 +496,59 @@ public class NoteMainFragment extends Fragment{
             });
         }
 
+        public void deleteFile(File.FileType type, String title) {
+            int pos = 0;
+            for(; pos < file_list.size(); pos++) {
+                if(file_list.get(pos).type == type &&
+                   file_list.get(pos).title.equals(title))
+                    break;
+            }
+
+//            File f = file_list.remove(pos);
+//            notifyItemRemoved(pos);
+
+            // TODO：与后端联系，删除文件
+            File f = file_list.get(pos);
+            final int index = pos;
+            API api = API.Creator.createApiService();
+            String label = "";
+            if (f.type == File.FileType.NOTE) label = "note";
+            else label = "folder";
+            DeleteFileRequest request = new DeleteFileRequest(usrid,
+                    curPath + "/" + file_list.get(pos).title, label);
+            Call<DeleteFileResponse> call = api.delete_file(request);
+            call.enqueue(new Callback<DeleteFileResponse>() {
+                @Override
+                public void onResponse(Call<DeleteFileResponse> call, Response<DeleteFileResponse> response) {
+                    // print response body
+                    if(response.isSuccessful()){
+                        System.out.println(index);
+                        file_list.remove(index);
+                        notifyItemRemoved(index);
+//                        Toast.makeText(mPage.getContext(), response.body().getMsg(),
+//                                Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        // TODO:获取后端失败原因
+                        try {
+                            JSONObject r = new JSONObject(response.errorBody().string());
+                            Toast.makeText(mPage.getContext(), r.getString("msg"),
+                                    Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<DeleteFileResponse> call, Throwable t) {
+                    System.out.println("Bug exists~");
+                }
+            });
+        }
+
         // 自定义Viewhodler
         public class FileViewHodler extends RecyclerView.ViewHolder {
             private ImageView mFileImg;
@@ -400,18 +577,34 @@ public class NoteMainFragment extends Fragment{
 //                            Toast.makeText(context, "点击了xxx", Toast.LENGTH_SHORT).show();
                             // TODO: 从后端获取数据
                             curPath = curPath + '/' + mTitle;
-                            mRecyclerAdapter.gotoPath(curPath);
+                            mRecyclerAdapter.gotoPath(curPath, false);
                             ((TextView)mPage.findViewById(R.id.cur_path)).setText(">  " + curPath);
                         }
                     });
+
                 }
                 else if (viewType == File.FileType.NOTE.ordinal()) {
                     itemView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             // todo: 跳转到NoteDetailActivity
+                            String path;
+                            if (inSearch) {
+                                if (! doneSearch) {
+                                    Toast.makeText(getContext(), "正在搜索，请耐心等待结果~",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                int index = 1;
+                                for (; index < file_list.size(); index++) {
+                                    if (file_list.get(index).title == mTitle) break;
+                                }
+                                path = paths.get(index - 1);
+                            }
+                            else path = curPath + '/' + mTitle;
+
                             Intent intent = new Intent(context, NoteDetailActivity.class);
-                            intent.putExtra("path", curPath+'/' + mTitle);
+                            intent.putExtra("path", path);
                             startActivity(intent);
                         }
                     });
@@ -425,6 +618,31 @@ public class NoteMainFragment extends Fragment{
                     });
                 }
 
+
+                if (viewType == File.FileType.FOLDER.ordinal() ||
+                    viewType == File.FileType.NOTE.ordinal()) {
+                    itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            CustomDialog.show(new OnBindView<CustomDialog>(R.layout.popup_delete) {
+                                        @Override
+                                        public void onBind(final CustomDialog dialog, View v) {
+                                            View btnDelete = v.findViewById(R.id.delete);
+                                            btnDelete.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    deleteFile(mType, mTitle);
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                        }
+                                    })
+                                    .setAlignBaseViewGravity(itemView.findViewById(R.id.image), Gravity.CENTER)
+                                    .setBaseViewMarginBottom(40);
+                            return true;
+                        }
+                    });
+                }
             }
 
             public void setTitle(String title) {

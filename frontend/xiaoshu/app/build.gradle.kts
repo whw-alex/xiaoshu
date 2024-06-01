@@ -57,4 +57,5 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
     implementation("com.squareup.okhttp3:okhttp:3.14.+")
     implementation("com.kongzue.dialogx:DialogX:0.0.49")
+    implementation("com.github.arimorty:floatingsearchview:2.1.1")
 }
