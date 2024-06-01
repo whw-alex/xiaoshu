@@ -8,6 +8,7 @@ import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ import com.example.xiaoshu.Request.AIChatRequest;
 import com.example.xiaoshu.Request.AddFileRequest;
 import com.example.xiaoshu.Request.NoteDetailRequest;
 import com.example.xiaoshu.Request.SaveNoteTestRequest;
+import com.example.xiaoshu.Request.UploadFakeImageRequest;
 import com.example.xiaoshu.Response.AIChatResponse;
 import com.example.xiaoshu.Response.AddFileResponse;
 import com.example.xiaoshu.Response.NoteInfoResponse;
@@ -83,6 +85,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
     List<NoteItem> noteList;
     private static final int REQUEST_IMAGE_PICK = 1;
     private static final int PERMISSION_CAMERA_REQUEST_CODE = 0x00000012;
+    private static final int PERMISSION_AUDIO_REQUEST_CODE = 0x00000013;
     private Uri imageUri;
     private Uri mCameraUri;
     private String path;
@@ -92,6 +95,9 @@ public class NoteDetailActivity extends  AppCompatActivity{
 
     // 是否是Android 10以上手机
     private boolean isAndroidQ = Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q;
+    MediaRecorder recorder;
+    boolean isRecording = false;
+    File audioFile;
 
     // 以下是关于AI对话框的状态变量
     private enum DIALOG_STATE {
@@ -108,6 +114,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.note_detail);
         path = getIntent().getStringExtra("path");
+
+        isRecording = false;
 
         noteList = new ArrayList<>();
         TextView title = findViewById(R.id.title);
@@ -191,15 +199,6 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     // camera
                     Log.d("NoteDetailActivity", "take photo");
                     checkPermissionAndCamera();
-
-//                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                    startActivityForResult(takePictureIntent, PERMISSION_CAMERA_REQUEST_CODE);
-//
-//                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//                        Log.d("NoteDetailActivity", "start camera");
-//                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-//                    }
-
                     return true;
                 } else if (itemId == R.id.item_choose_photo) {
 //                    choose photo
@@ -212,8 +211,12 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     // 更改icon
                     if (item.getIcon().getConstantState().equals(getResources().getDrawable(R.drawable.ic_audio).getConstantState())) {
                         item.setIcon(R.drawable.ic_stop_audio);
+                        startRecord();
+
                     } else {
                         item.setIcon(R.drawable.ic_audio);
+                        stopRecord();
+
                     }
                     return true;
 
@@ -243,6 +246,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
 //            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
+            uploadFakeImage();
             uploadImage(mCameraUri);
         }
         else if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
@@ -253,6 +257,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
 //            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
+            uploadFakeImage();
             uploadImage(uri);
         }
     }
@@ -274,6 +279,21 @@ public class NoteDetailActivity extends  AppCompatActivity{
         }
     }
 
+    private void checkPermissionAndAudio() {
+        int hasAudioPermission = ContextCompat.checkSelfPermission(getApplication(),
+                Manifest.permission.RECORD_AUDIO);
+        if (hasAudioPermission == PackageManager.PERMISSION_GRANTED) {
+            //有调起相机拍照。
+            Log.d("NoteDetailActivity", "checkPermissionAndAudio");
+            record();
+        } else {
+            //没有权限，申请权限。
+            Log.d("NoteDetailActivity", "requestPermissions");
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},
+                    PERMISSION_AUDIO_REQUEST_CODE);
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -285,6 +305,17 @@ public class NoteDetailActivity extends  AppCompatActivity{
             } else {
                 //拒绝权限，弹出提示框。
                 Toast.makeText(this, "拍照权限被拒绝", Toast.LENGTH_LONG).show();
+            }
+        }
+        else if (requestCode == PERMISSION_AUDIO_REQUEST_CODE) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //允许权限。
+                Log.d("NoteDetailActivity", "openAudio");
+                record();
+            } else {
+                //拒绝权限，弹出提示框。
+                Toast.makeText(this, "录音权限被拒绝", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -361,6 +392,117 @@ public class NoteDetailActivity extends  AppCompatActivity{
         return tempFile;
     }
 
+    private void record(){
+        File fileEx = this.getExternalFilesDir(null);
+        String dir = fileEx.getAbsolutePath() + "/MediaRecorderTest";
+        File file_path = new File(dir);
+        recorder = new MediaRecorder();
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);//设置播放源 麦克风
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP); //设置输入格式 3gp
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB); //设置编码 AMR
+        if(!file_path.exists())
+        {
+            boolean is_dir_created = file_path.mkdirs();
+            Log.d("NoteDetailActivity", "is_dir_created: " + is_dir_created);
+        }
+
+        try {
+            //这个地方写文件名，可以利用时间来保存为不同的文件名
+            String fileName = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            fileName = fileName + ".MP3";
+            Log.d("NoteDetailActivity", "fileName: " + fileName);
+            audioFile=new File(file_path,fileName);
+            if(audioFile.exists())
+            {
+                audioFile.delete();
+            }
+            if (!audioFile.getParentFile().exists())
+                audioFile.getParentFile().mkdirs();
+            if (!audioFile.exists())
+                audioFile.createNewFile();
+            boolean is_created = audioFile.createNewFile();//创建文件
+            Log.d("NoteDetailActivity", "is_Created: " + is_created);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't create recording audio file", e);
+        }
+
+        recorder.setOutputFile(audioFile.getAbsolutePath());
+
+        try {
+            recorder.prepare();
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("IllegalStateException on MediaRecorder.prepare", e);
+        } catch (IOException e) {
+            throw new RuntimeException("IOException on MediaRecorder.prepare", e);
+        }
+        isRecording=true;
+        recorder.start();
+    }
+
+    public void startRecord(){
+        Toast.makeText(this,"开始录音",Toast.LENGTH_SHORT).show();
+        checkPermissionAndAudio();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void stopRecord(){
+        if(isRecording){
+            Toast.makeText(this,"停止录音",Toast.LENGTH_SHORT).show();
+            if (recorder != null){
+                try {
+                    recorder.stop();
+                    recorder.release();
+                    recorder = null;
+                    noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, audioFile.getAbsolutePath()));
+                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
+                    noteAdapter.notifyDataSetChanged();
+                    uploadMP3();
+//                    Intent intent = new Intent(Intent.ACTION_VIEW);
+//                    Uri uri = Uri.fromFile(audioFile);
+//                    intent.setDataAndType(uri, "audio/mp3");
+//                    startActivity(intent);
+
+
+
+                } catch (IllegalStateException e) {
+                    // TODO 如果当前java状态和jni里面的状态不一致，
+                    //e.printStackTrace();
+                    recorder = null;
+                    recorder = new MediaRecorder();
+                }
+
+            }
+            isRecording=false;
+        }
+    }
+
+    public void uploadFakeImage()
+    {
+        API api = API.Creator.createApiService();
+        SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int id = sharedPreferences.getInt("id", 0);
+        Call<AddFileResponse> call = api.uploadFakeImage(new UploadFakeImageRequest(id, path));
+        call.enqueue(new Callback<AddFileResponse>() {
+            @Override
+            public void onResponse(Call<AddFileResponse> call, Response<AddFileResponse> response) {
+                if(response.isSuccessful())
+                {
+                    AddFileResponse addFileResponse = response.body();
+                    Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AddFileResponse> call, Throwable t) {
+                // 请求失败
+                Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
+            }
+        });
+
+    }
     public void uploadImage(Uri uri) {
         try {
             InputStream is = getContentResolver().openInputStream(uri);
@@ -412,6 +554,43 @@ public class NoteDetailActivity extends  AppCompatActivity{
         }
     }
 
+    public void uploadMP3() {
+        API api = API.Creator.createApiService();
+        MultipartBody.Builder builder = new MultipartBody.Builder();
+        builder.setType(MultipartBody.FORM);
+        File uploadFile = new File(audioFile.getAbsolutePath());
+        RequestBody requestBody = RequestBody.create(MediaType.parse("audio/mp3"), uploadFile);
+        Log.d("NoteDetailActivity", "uploadMP3 requestbody: " + requestBody.contentType() + " " + requestBody.toString());
+        SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int id = sharedPreferences.getInt("id", 0);
+        builder.addFormDataPart("id", String.valueOf(id));
+        builder.addFormDataPart("file", "audio.mp3", requestBody);
+        builder.addFormDataPart("path", path);
+        RequestBody body = builder.build();
+        Log.d("NoteDetailActivity", "uploadMP3: " + body.contentType());
+        Call<AddFileResponse> call = api.uploadAudio(body);
+        call.enqueue(new Callback<AddFileResponse>() {
+            @Override
+            public void onResponse(Call<AddFileResponse> call, Response<AddFileResponse> response) {
+                if(response.isSuccessful())
+                {
+                    AddFileResponse addFileResponse = response.body();
+                    Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AddFileResponse> call, Throwable t) {
+                // 请求失败
+                Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
+            }
+        });
+
+
+
+    }
 
     private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);

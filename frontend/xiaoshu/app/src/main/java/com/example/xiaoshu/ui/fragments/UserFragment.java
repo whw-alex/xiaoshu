@@ -22,6 +22,7 @@ import android.content.Intent;
 import com.example.xiaoshu.StartActivity;
 import com.example.xiaoshu.UserEditActivity;
 import com.example.xiaoshu.UserResetActivity;
+import com.squareup.picasso.Picasso;
 
 public class UserFragment extends Fragment{
     ImageView imageView_edit;
@@ -70,8 +71,15 @@ public class UserFragment extends Fragment{
 
         if(!avatar_url.isEmpty())
         {
-            avatar_.setImageURI(null);
-            avatar_.setImageURI(Uri.parse(avatar_url));
+            if (avatar_url.contains("static"))
+            {
+                Log.d("UserFragment", "onCreateView: contain static avatar_url: " + avatar_url);
+                Picasso.get().load(avatar_url).into(avatar_);
+            }
+            else {
+                avatar_.setImageURI(null);
+                avatar_.setImageURI(Uri.parse(avatar_url));
+            }
         }
         else
         {

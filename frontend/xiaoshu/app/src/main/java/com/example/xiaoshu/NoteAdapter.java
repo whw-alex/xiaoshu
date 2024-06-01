@@ -2,6 +2,8 @@ package com.example.xiaoshu;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,6 +13,8 @@ import android.view.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.io.IOException;
 import java.util.*;
 import android.widget.*;
 
@@ -212,12 +216,77 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         // 定义音频播放相关的视图控件
         // 例如，MediaPlayer、播放按钮等等
         NoteItem item;
+        MediaPlayer mediaPlayer;
+        ImageView playButton;
+        TextView audioText;
+
         void bindItem(NoteItem item) {
+
             this.item = item;
+            Log.d("AudioViewHolder", "bindItem: " + item.getContent());
+            try {
+                mediaPlayer = new MediaPlayer();
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mediaPlayer.setDataSource(item.getContent());
+                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mp) {
+//                        mediaPlayer.start();
+                        int duration = mediaPlayer.getDuration();
+                        audioText.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                                duration / 1000 / 60, duration / 1000 % 60));
+
+                    }
+                });
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        playButton.setImageResource(R.drawable.ic_play_circle);
+                        mediaPlayer.seekTo(0);
+                    }
+                });
+                mediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+
         }
         AudioViewHolder(@NonNull View itemView) {
             super(itemView);
             // 初始化音频播放相关的视图控件
+            playButton = itemView.findViewById(R.id.play);
+            audioText = itemView.findViewById(R.id.duration);
+            playButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mediaPlayer.isPlaying()) {
+                        mediaPlayer.pause();
+                        Log.d("AudioViewHolder", "onClick: pause");
+                        playButton.setImageResource(R.drawable.ic_play_circle);
+
+                    }
+                    else {
+                        Log.d("AudioViewHolder", "current position: " + mediaPlayer.getCurrentPosition());
+                        if (mediaPlayer.getCurrentPosition() > 0) {
+                            mediaPlayer.start();
+                            playButton.setImageResource(R.drawable.ic_pause_circle);
+                        } else {
+//                            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                                @Override
+//                                public void onPrepared(MediaPlayer mp) {
+//                                    mediaPlayer.start();
+//                                    playButton.setImageResource(R.drawable.ic_pause_circle);
+//                                }
+//                            });
+//                            mediaPlayer.prepareAsync();
+                            mediaPlayer.start();
+                            playButton.setImageResource(R.drawable.ic_pause_circle);
+                        }
+                    }
+                }
+            });
+
         }
     }
 

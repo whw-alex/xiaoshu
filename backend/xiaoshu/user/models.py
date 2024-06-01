@@ -4,7 +4,7 @@ from django.db import models
 class User(models.Model):
     username = models.CharField(max_length=20, default='user')
     password = models.CharField(max_length=20, default='password')
-    avatar = models.ImageField(upload_to='avatar/', default='@drawable/avatar_11')
+    avatar = models.ImageField(upload_to='avatar/', default='')
     signature = models.CharField(max_length=100, default='这个人很懒，什么都没有留下')
     token = models.CharField(max_length=100, default='')
 
