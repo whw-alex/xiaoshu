@@ -118,7 +118,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
         isRecording = false;
 
         noteList = new ArrayList<>();
-        TextView title = findViewById(R.id.title);
+//        TextView title = findViewById(R.id.title);
+        EditText title = findViewById(R.id.title);
         TextView modifiedTime = findViewById(R.id.modified_time);
 
         // 初始化 RecyclerView
@@ -600,6 +601,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
     private void saveAllText() {
         // 保存所有文本内容
         List<Pair<Integer, String>> textList = new ArrayList<>();
+//        先保存标题
+        textList.add(new Pair<>(-1, ((EditText) findViewById(R.id.title)).getText().toString()));
         for (int i = 0; i < noteList.size(); i++) {
             NoteItem item = noteList.get(i);
             if (item.getType() == NoteItem.TYPE_TEXT) {
@@ -625,6 +628,10 @@ public class NoteDetailActivity extends  AppCompatActivity{
                 {
                     AddFileResponse addFileResponse = response.body();
                     Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
+                    String new_title = ((EditText) findViewById(R.id.title)).getText().toString();
+                    Intent intent = new Intent();
+                    intent.putExtra("title", new_title);
+                    setResult(RESULT_OK, intent);
                     finish();
                 }
                 else

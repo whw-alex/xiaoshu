@@ -217,6 +217,7 @@ def note_info(request):
                 'title': note.name,
                 'modified_time': note.modified_time.strftime("%Y-%m-%d %H:%M:%S")
             }
+        print(f'note info data_json: {data_json}')
         return HttpResponse(json.dumps(data_json),status=200)
     #     try:
     #         user = User.objects.get(id=user_id)
@@ -423,13 +424,23 @@ def save_note_text(request):
         textList = data.get('textList')
         user = User.objects.get(id=user_id)
         note = Note.objects.get(user=user, path=path)
+        note.modified_time = datetime.now()
+        note.save()
         for text_pair in textList:
             index = text_pair.get('first')
             content = text_pair.get('second')
             print(f'index: {index}, content: {content}')
-            text = TextSegment.objects.get(note=note, index=index)
-            text.text = content
-            text.save()
+            if index == -1:
+                print("新建文本")
+                old_title = note.title
+                note.title = content
+                note.name = content
+                note.path = note.path.replace(old_title, content)
+                note.save()
+            else:
+                text = TextSegment.objects.get(note=note, index=index)
+                text.text = content
+                text.save()
         return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
     return HttpResponse('请求方式错误',status=400)
      
