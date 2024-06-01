@@ -1,8 +1,6 @@
 package com.example.xiaoshu.Response;
 
-import android.util.Log;
-
-import com.example.xiaoshu.ui.note.NoteMainFragment.File;
+import com.example.xiaoshu.ui.fragments.NoteMainFragment.File;
 
 import java.util.ArrayList;
 

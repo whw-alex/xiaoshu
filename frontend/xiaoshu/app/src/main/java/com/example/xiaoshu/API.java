@@ -9,12 +9,16 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 
 import com.example.xiaoshu.Request.AIChatRequest;
+import com.example.xiaoshu.Request.DeleteFileRequest;
 import com.example.xiaoshu.Request.FileListRequest;
+import com.example.xiaoshu.Request.SearchRequest;
 import com.example.xiaoshu.Request.UserRequest;
 import com.example.xiaoshu.Request.AddFileRequest;
 import com.example.xiaoshu.Response.AIChatResponse;
 import com.example.xiaoshu.Response.AddFileResponse;
+import com.example.xiaoshu.Response.DeleteFileResponse;
 import com.example.xiaoshu.Response.FilelistResponse;
+import com.example.xiaoshu.Response.SearchResponse;
 import com.example.xiaoshu.Response.UserResponse;
 import com.example.xiaoshu.Response.LoginResponse;
 import com.example.xiaoshu.Request.LoginRequest;
@@ -53,8 +57,14 @@ public interface API {
     @POST("user/file_list/")
     Call<FilelistResponse> get_file_list(@Body FileListRequest fileListRequest);
 
+    @POST("user/search/")
+    Call<SearchResponse> get_search_result(@Body SearchRequest fileListRequest);
+
     @POST("user/create_file/")
     Call<AddFileResponse> create_file(@Body AddFileRequest fileListRequest);
+
+    @POST("user/delete_file/")
+    Call<DeleteFileResponse> delete_file(@Body DeleteFileRequest fileListRequest);
 
     @POST("user/upload_note_image/")
     Call<AddFileResponse> uploadImage(@Body RequestBody photo);

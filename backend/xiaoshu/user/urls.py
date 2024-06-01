@@ -10,6 +10,8 @@ urlpatterns = [
     path('reset_password/', views.reset_password),
     path('file_list/', views.file_list),
     path('create_file/', views.create_file),
+    path('delete_file/', views.delete_file),
+    path('search/', views.search_file_list),
     path('note_list/', views.note_list),
     path('note_info/', views.note_info),
     path('upload_note_image/', views.upload_note_image),

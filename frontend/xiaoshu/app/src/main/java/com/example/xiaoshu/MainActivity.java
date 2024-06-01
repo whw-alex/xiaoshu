@@ -9,7 +9,8 @@ import androidx.annotation.*;
 import androidx.fragment.app.*;
 import androidx.viewpager.widget.ViewPager;
 
-import com.example.xiaoshu.ui.note.NoteMainFragment;
+import com.example.xiaoshu.ui.fragments.NoteMainFragment;
+import com.example.xiaoshu.ui.fragments.UserFragment;
 import com.google.android.material.tabs.TabLayout;
 import androidx.appcompat.widget.Toolbar;
 
