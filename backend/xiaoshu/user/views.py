@@ -507,7 +507,7 @@ def upload_note_audio(request):
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
 
 
-def delete_note_image_or_audio(request):
+def delete_item(request):
     if request.method == 'POST':
         data = request.body
         data = json.loads(data)
@@ -516,6 +516,33 @@ def delete_note_image_or_audio(request):
         user_id = data.get('id')
         path = data.get('path')
         note = Note.objects.get(user=User.objects.get(id=user_id), path=path)
+        item_type = data.get('type')
+        item_index = data.get('index')
+
+        if item_type == 'image':
+            image = ImageSegment.objects.get(note=note, index=item_index)
+            image.delete()
+        elif item_type == 'audio':
+            audio = AudioSegment.objects.get(note=note, index=item_index)
+            audio.delete()
+
+        for i in range(item_index+1, note.current_index):
+            try:
+                item = ImageSegment.objects.get(note=note, index=i)
+                item.index -= 1
+                item.save()
+            except:
+                try:
+                    item = AudioSegment.objects.get(note=note, index=i)
+                    item.index -= 1
+                    item.save()
+                except:
+                    item = TextSegment.objects.get(note=note, index=i)
+                    item.index -= 1
+                    item.save()
+        note.current_index -= 1
+        note.save()
+        return HttpResponse(json.dumps({'msg': '删除成功！'}),status=200)
         
 
 def save_note_text(request):

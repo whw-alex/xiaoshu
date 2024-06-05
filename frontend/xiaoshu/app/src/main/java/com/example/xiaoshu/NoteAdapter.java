@@ -1,6 +1,9 @@
 package com.example.xiaoshu;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -25,21 +28,38 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.ImageViewTarget;
+import com.example.xiaoshu.Response.DeleteFileResponse;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 import android.graphics.BitmapFactory;
+import com.kongzue.dialogx.dialogs.CustomDialog;
+import com.kongzue.dialogx.dialogs.MessageDialog;
+import com.kongzue.dialogx.interfaces.OnBindView;
+
+import com.example.xiaoshu.Request.DeleteItemRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteList;
     private static final String BASE_URL = "http://10.0.2.2:8000/";
     Context pageContext;
+    int id;
+    String path;
 
 
-    public NoteAdapter(List<NoteItem> noteList, Context pageContext) {
+    public NoteAdapter(List<NoteItem> noteList, Context pageContext, int id, String path) {
         this.pageContext = pageContext;
         this.noteList = noteList;
+        this.id = id;
+        this.path = path;
     }
     @Override
     public int getItemViewType(int position) {
@@ -63,6 +83,8 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view;
         RecyclerView.ViewHolder viewHolder;
+
+
 
         // 根据视图类型加载不同的布局文件和视图持有者
         if (viewType == NoteItem.TYPE_TEXT) {
@@ -211,14 +233,58 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
+    public void deleteFile(int type, String content)
+    {
+        int pos = 0;
+        for(; pos < noteList.size(); pos++) {
+            if(noteList.get(pos).getType() == type &&
+                    noteList.get(pos).getContent().equals(content))
+                break;
+        }
+        Log.d("NoteAdapter", "deleteFile: " + pos);
+        API api = API.Creator.createApiService();
+        final int final_pos = pos;
+        Call<DeleteFileResponse> call = api.delete_item(new DeleteItemRequest(id, path, type == NoteItem.TYPE_AUDIO ? "audio" : "image", pos));
+        call.enqueue(new Callback<DeleteFileResponse>() {
+            @Override
+            public void onResponse(Call<DeleteFileResponse> call, Response<DeleteFileResponse> response) {
+                // print response body
+                if (response.isSuccessful()) {
+                    System.out.println(final_pos);
+                    noteList.remove(final_pos);
+                    notifyItemRemoved(final_pos);
+
+
+                } else {
+                    // TODO:获取后端失败原因
+                    try {
+                        JSONObject r = new JSONObject(response.errorBody().string());
+                        String msg = r.getString("msg");
+                        Log.d("NoteAdapter", "onResponse: " + msg);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<DeleteFileResponse> call, Throwable t) {
+                System.out.println("Bug exists~");
+            }
+        });
+
+    }
+
     // 定义音频类型的视图持有者
-    private static class AudioViewHolder extends RecyclerView.ViewHolder {
+    private class AudioViewHolder extends RecyclerView.ViewHolder {
         // 定义音频播放相关的视图控件
         // 例如，MediaPlayer、播放按钮等等
         NoteItem item;
         MediaPlayer mediaPlayer;
         ImageView playButton;
         TextView audioText;
+        TextView title;
 
         void bindItem(NoteItem item) {
 
@@ -257,6 +323,30 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             // 初始化音频播放相关的视图控件
             playButton = itemView.findViewById(R.id.play);
             audioText = itemView.findViewById(R.id.duration);
+            title = itemView.findViewById(R.id.title);
+            title.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    CustomDialog.show(new OnBindView<CustomDialog>(R.layout.popup_delete) {
+                                @Override
+                                public void onBind(final CustomDialog dialog, View v) {
+                                    View btnDelete = v.findViewById(R.id.delete);
+                                    btnDelete.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            deleteFile(item.getType(), item.getContent());
+                                            dialog.dismiss();
+                                        }
+                                    });
+                                }
+                            })
+                            .setAlignBaseViewGravity(title.findViewById(R.id.title), Gravity.TOP|Gravity.CENTER)
+                            .setBaseViewMarginBottom(-60);
+
+
+                    return true;
+                }
+            });
             playButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -290,8 +380,10 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
+
+
     // 定义图片类型的视图持有者
-    private static class ImageViewHolder extends RecyclerView.ViewHolder {
+    private class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         NoteItem item;
         void bindItem(NoteItem item) {
@@ -301,6 +393,29 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView);
+            imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    CustomDialog.show(new OnBindView<CustomDialog>(R.layout.popup_delete) {
+                                @Override
+                                public void onBind(final CustomDialog dialog, View v) {
+                                    View btnDelete = v.findViewById(R.id.delete);
+                                    btnDelete.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            deleteFile(item.getType(), item.getContent());
+                                            dialog.dismiss();
+                                        }
+                                    });
+                                }
+                            })
+                            .setAlignBaseViewGravity(imageView.findViewById(R.id.imageView), Gravity.CENTER)
+                            .setBaseViewMarginBottom(40);
+                    return true;
+                }
+            });
         }
     }
+
+
 }
