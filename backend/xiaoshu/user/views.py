@@ -12,6 +12,7 @@ from fuzzywuzzy import fuzz
 from datetime import datetime
 from time import sleep
 from django.conf import settings
+from django.utils import timezone
 
 
 
@@ -525,22 +526,32 @@ def delete_item(request):
         elif item_type == 'audio':
             audio = AudioSegment.objects.get(note=note, index=item_index)
             audio.delete()
+        try:
+            pre_text = TextSegment.objects.get(note=note, index=item_index-1)
+            post_text = TextSegment.objects.get(note=note, index=item_index+1)
+            pre_text.text += '\n'
+            pre_text.text += post_text.text
+            pre_text.save()
+            post_text.delete()
+        except:
+            pass
 
-        for i in range(item_index+1, note.current_index):
+
+        for i in range(item_index+2, note.current_index):
             try:
                 item = ImageSegment.objects.get(note=note, index=i)
-                item.index -= 1
+                item.index -= 2
                 item.save()
             except:
                 try:
                     item = AudioSegment.objects.get(note=note, index=i)
-                    item.index -= 1
+                    item.index -= 2
                     item.save()
                 except:
                     item = TextSegment.objects.get(note=note, index=i)
-                    item.index -= 1
+                    item.index -= 2
                     item.save()
-        note.current_index -= 1
+        note.current_index -= 2
         note.save()
         return HttpResponse(json.dumps({'msg': '删除成功！'}),status=200)
         
@@ -555,7 +566,8 @@ def save_note_text(request):
         textList = data.get('textList')
         user = User.objects.get(id=user_id)
         note = Note.objects.get(user=user, path=path)
-        note.modified_time = datetime.now()
+        note.modified_time = (timezone.now())
+        print(f'time: {note.modified_time}')
         note.save()
         name_collision = False
         for text_pair in textList:

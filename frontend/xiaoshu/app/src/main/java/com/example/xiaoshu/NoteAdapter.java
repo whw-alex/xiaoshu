@@ -242,6 +242,13 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                 break;
         }
         Log.d("NoteAdapter", "deleteFile: " + pos);
+        NoteItem pre_item = noteList.get(pos-1);
+        NoteItem post_item = noteList.get(pos+1);
+        if (pre_item.getType() == NoteItem.TYPE_TEXT && post_item.getType() == NoteItem.TYPE_TEXT) {
+            noteList.get(pos-1).setContent(pre_item.getContent() +"\n" +post_item.getContent());
+            notifyItemChanged(pos-1);
+
+        }
         API api = API.Creator.createApiService();
         final int final_pos = pos;
         Call<DeleteFileResponse> call = api.delete_item(new DeleteItemRequest(id, path, type == NoteItem.TYPE_AUDIO ? "audio" : "image", pos));
@@ -253,6 +260,9 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                     System.out.println(final_pos);
                     noteList.remove(final_pos);
                     notifyItemRemoved(final_pos);
+                    noteList.remove(final_pos);
+                    notifyItemRemoved(final_pos);
+
 
 
                 } else {
