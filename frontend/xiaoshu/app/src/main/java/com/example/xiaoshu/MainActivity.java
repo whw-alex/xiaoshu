@@ -2,7 +2,9 @@ package com.example.xiaoshu;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import java.util.*;
 import androidx.annotation.*;
@@ -64,4 +66,18 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_user);
 
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) { //接收后面一个界面结果码为1的界面
+            Bundle bundle = data.getExtras();
+            ((NoteMainFragment)tabFragmentList.get(0))
+                    .closeAndRefresh(bundle.getString("title"));
+
+        }
+
+    }
+
 }

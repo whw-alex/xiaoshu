@@ -76,6 +76,10 @@ public class NoteMainFragment extends Fragment{
     boolean inSearch = false;
     ArrayList<String> paths;
 
+    boolean fileOpened = false;
+    int file_index;
+
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -595,17 +599,26 @@ public class NoteMainFragment extends Fragment{
                                             Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                int index = 1;
-                                for (; index < file_list.size(); index++) {
-                                    if (file_list.get(index).title == mTitle) break;
+                                file_index = 1;
+                                for (; file_index < file_list.size(); file_index++) {
+                                    if (file_list.get(file_index).title.equals(mTitle)) break;
                                 }
-                                path = paths.get(index - 1);
+                                file_index--;
+                                path = paths.get(file_index);
                             }
-                            else path = curPath + '/' + mTitle;
+                            else {
+                                file_index = 1;
+                                for (; file_index < file_list.size(); file_index++) {
+                                    if (file_list.get(file_index).title.equals(mTitle) &&
+                                        file_list.get(file_index).type == mType) break;
+                                }
+                                path = curPath + '/' + mTitle;
+                            }
 
+                            fileOpened = true;
                             Intent intent = new Intent(context, NoteDetailActivity.class);
                             intent.putExtra("path", path);
-                            startActivity(intent);
+                            startActivityForResult(intent, 1);
                         }
                     });
                 }
@@ -648,8 +661,18 @@ public class NoteMainFragment extends Fragment{
             public void setTitle(String title) {
                 mTitle = title;
             }
-
         }
 
     }
+
+    public void closeAndRefresh(String title) {
+        if (!fileOpened) return;
+
+        fileOpened = false;
+        if (! file_list.get(file_index).title.equals(title)) {
+            file_list.get(file_index).title = title;
+            mRecyclerAdapter.notifyItemChanged(file_index);
+        }
+    }
+
 }

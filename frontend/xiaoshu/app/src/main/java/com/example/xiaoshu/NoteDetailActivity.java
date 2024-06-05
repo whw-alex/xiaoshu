@@ -637,6 +637,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
                 else
                 {
                     Log.d("NoteDetailActivity", "Error: " + response.message());
+                    Intent intent = new Intent();
+                    setResult(RESULT_CANCELED, intent);
                     Toasty.error(NoteDetailActivity.this, "Error: " + response.message(), Toast.LENGTH_SHORT, true).show();
                     finish();
                 }
@@ -646,6 +648,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
             public void onFailure(Call<AddFileResponse> call, Throwable t) {
                 // 请求失败
                 Log.d("NoteDetailActivity", "Error: " + t.getMessage());
+                Intent intent = new Intent();
+                setResult(RESULT_CANCELED, intent);
                 Toasty.error(NoteDetailActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT, true).show();
                 finish();
 
