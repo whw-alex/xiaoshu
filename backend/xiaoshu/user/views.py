@@ -97,10 +97,18 @@ def profile(request):
         username = data.get('username')
         signature = data.get('signature')
         avatar = data.get('avatar')
+        try:
+            exist_user = User.objects.get(username=username)
+            if exist_user.id != user_id:
+                return HttpResponse('用户名已存在',status=400)
+        except:
+            pass
         user = User.objects.get(id=user_id)
         user.username = username
         user.signature = signature
-        user.avatar = avatar
+        if avatar != '':
+            user.avatar = avatar
+        
         user.save()
         data_json = {
             'username': user.username,
