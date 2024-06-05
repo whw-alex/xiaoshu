@@ -507,6 +507,17 @@ def upload_note_audio(request):
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
 
 
+def delete_note_image_or_audio(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+
+        user_id = data.get('id')
+        path = data.get('path')
+        note = Note.objects.get(user=User.objects.get(id=user_id), path=path)
+        
+
 def save_note_text(request):
     if request.method == 'POST':
         data = request.body
