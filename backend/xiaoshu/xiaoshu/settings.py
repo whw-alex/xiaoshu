@@ -29,6 +29,9 @@ ALLOWED_HOSTS = ["10.0.2.2", "127.0.0.1", "183.173.107.161", "183.173.45.88"]
 
 BASE_URL = "http://10.0.2.2:8000"
 
+TIME_ZONE = 'Asia/Shanghai'
+USE_TZ = False
+
 
 # Application definition
 

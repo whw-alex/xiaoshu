@@ -8,6 +8,7 @@
 
     <!-- 添加音频播放相关的视图控件，例如播放按钮、进度条等 -->
     <LinearLayout
+        android:id="@+id/audio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

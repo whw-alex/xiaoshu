@@ -31,6 +31,7 @@ import com.example.xiaoshu.Request.ResetPasswordRequest;
 import com.example.xiaoshu.Response.ResetPasswordResponse;
 import com.example.xiaoshu.Request.SaveNoteTestRequest;
 import com.example.xiaoshu.Request.UploadFakeImageRequest;
+import com.example.xiaoshu.Request.DeleteItemRequest;
 import java.util.List;
 
 
@@ -65,6 +66,9 @@ public interface API {
 
     @POST("user/delete_file/")
     Call<DeleteFileResponse> delete_file(@Body DeleteFileRequest fileListRequest);
+
+    @POST("user/delete_item/")
+    Call<DeleteFileResponse> delete_item(@Body DeleteItemRequest fileListRequest);
 
     @POST("user/upload_note_image/")
     Call<AddFileResponse> uploadImage(@Body RequestBody photo);

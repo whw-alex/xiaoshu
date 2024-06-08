@@ -41,6 +41,7 @@ public class UserEditActivity extends AppCompatActivity{
     TextView signature_;
     MaterialToolbar topAppBar;
     private static final int REQUEST_IMAGE_PICK = 1;
+    Boolean has_uploaded_image = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +82,8 @@ public class UserEditActivity extends AppCompatActivity{
         save.setOnClickListener(v -> {
             // save changes
             Log.d("UserEditActivity", "onCreate: save clicked");
-            uploadImage(avatar_uri);
+            if (has_uploaded_image)
+                uploadImage(avatar_uri);
             API api = API.Creator.createApiService();
 //            SharedPreferences sharedPreferences = getSharedPreferences("login_status", MODE_PRIVATE);
 //            SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -92,7 +94,11 @@ public class UserEditActivity extends AppCompatActivity{
                     if(response.isSuccessful())
                     {
                         Log.d("UserEditActivity", "onResponse: " + response.body().toString());
-                        editor.putString("avatar", avatar_uri.toString());
+                        if (has_uploaded_image)
+                            editor.putString("avatar", avatar_uri.toString());
+                        else
+                            editor.putString("avatar", "");
+//                        editor.putString("avatar", avatar_uri.toString());
                         editor.putString("username", username_.getText().toString());
                         editor.putString("signature", signature_.getText().toString());
                         editor.apply();
@@ -101,6 +107,7 @@ public class UserEditActivity extends AppCompatActivity{
                     }
                     else
                     {
+                        Toasty.error(UserEditActivity.this, "Registration failed: A user with that username already exists.", Toast.LENGTH_SHORT, true).show();
                         Log.d("UserEditActivity", "onResponse: " + response.errorBody().toString());
                         finish();
                     }
@@ -108,6 +115,7 @@ public class UserEditActivity extends AppCompatActivity{
 
                 @Override
                 public void onFailure(Call<ProfileResponse> call, Throwable t) {
+                    Toasty.error(UserEditActivity.this, "Registration failed: A user with that username already exists.", Toast.LENGTH_SHORT, true).show();
                     Log.d("UserEditActivity", "onFailure: " + t.getMessage());
                     finish();
                 }
@@ -140,6 +148,7 @@ public class UserEditActivity extends AppCompatActivity{
             avatar_.setImageURI(imageUri);
             avatar_uri = imageUri;
 //            uploadImage(imageUri);
+            has_uploaded_image = true;
 
 
         }

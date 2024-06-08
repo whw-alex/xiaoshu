@@ -12,6 +12,7 @@ from fuzzywuzzy import fuzz
 from datetime import datetime
 from time import sleep
 from django.conf import settings
+from django.utils import timezone
 
 
 
@@ -96,10 +97,18 @@ def profile(request):
         username = data.get('username')
         signature = data.get('signature')
         avatar = data.get('avatar')
+        try:
+            exist_user = User.objects.get(username=username)
+            if exist_user.id != user_id:
+                return HttpResponse('用户名已存在',status=400)
+        except:
+            pass
         user = User.objects.get(id=user_id)
         user.username = username
         user.signature = signature
-        user.avatar = avatar
+        if avatar != '':
+            user.avatar = avatar
+        
         user.save()
         data_json = {
             'username': user.username,
@@ -507,6 +516,54 @@ def upload_note_audio(request):
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
 
 
+def delete_item(request):
+    if request.method == 'POST':
+        data = request.body
+        data = json.loads(data)
+        print(f'data: {data}')
+
+        user_id = data.get('id')
+        path = data.get('path')
+        note = Note.objects.get(user=User.objects.get(id=user_id), path=path)
+        item_type = data.get('type')
+        item_index = data.get('index')
+
+        if item_type == 'image':
+            image = ImageSegment.objects.get(note=note, index=item_index)
+            image.delete()
+        elif item_type == 'audio':
+            audio = AudioSegment.objects.get(note=note, index=item_index)
+            audio.delete()
+        try:
+            pre_text = TextSegment.objects.get(note=note, index=item_index-1)
+            post_text = TextSegment.objects.get(note=note, index=item_index+1)
+            pre_text.text += '\n'
+            pre_text.text += post_text.text
+            pre_text.save()
+            post_text.delete()
+        except:
+            pass
+
+
+        for i in range(item_index+2, note.current_index):
+            try:
+                item = ImageSegment.objects.get(note=note, index=i)
+                item.index -= 2
+                item.save()
+            except:
+                try:
+                    item = AudioSegment.objects.get(note=note, index=i)
+                    item.index -= 2
+                    item.save()
+                except:
+                    item = TextSegment.objects.get(note=note, index=i)
+                    item.index -= 2
+                    item.save()
+        note.current_index -= 2
+        note.save()
+        return HttpResponse(json.dumps({'msg': '删除成功！'}),status=200)
+        
+
 def save_note_text(request):
     if request.method == 'POST':
         data = request.body
@@ -517,7 +574,8 @@ def save_note_text(request):
         textList = data.get('textList')
         user = User.objects.get(id=user_id)
         note = Note.objects.get(user=user, path=path)
-        note.modified_time = datetime.now()
+        note.modified_time = (timezone.now())
+        print(f'time: {note.modified_time}')
         note.save()
         name_collision = False
         for text_pair in textList:

@@ -173,7 +173,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
 //                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
 
                     // 创建并设置适配器
-                    noteAdapter = new NoteAdapter(noteList, getApplicationContext());
+                    noteAdapter = new NoteAdapter(noteList, getApplicationContext(), id, path);
                     recyclerView.setAdapter(noteAdapter);
                 }
             }
@@ -762,4 +762,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
                 }
             });
     }
+
+
+
 }
