@@ -133,7 +133,7 @@ public class NoteMainFragment extends Fragment{
 
         // 设置添加按钮
         final FloatingActionButton add_note = (FloatingActionButton) view.findViewById(R.id.add_note);
-        add_note.setIcon(R.drawable.ic_note);
+        add_note.setIcon(R.drawable.add_note);
         add_note.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -142,7 +142,7 @@ public class NoteMainFragment extends Fragment{
         });
 
         final FloatingActionButton add_folder = (FloatingActionButton) view.findViewById(R.id.add_folder);
-        add_folder.setIcon(R.drawable.ic_user);
+        add_folder.setIcon(R.drawable.add_folder);
         add_folder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

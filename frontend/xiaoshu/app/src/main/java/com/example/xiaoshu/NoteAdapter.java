@@ -35,6 +35,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteList;
     private static final String BASE_URL = "http://10.0.2.2:8000/";
     Context pageContext;
+    int last_last_index = -1;
 
 
     public NoteAdapter(List<NoteItem> noteList, Context pageContext) {
@@ -90,8 +91,17 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         NoteItem item = noteList.get(position);
         holder.itemView.setTag(item);
 
+        if (last_last_index != -1 &&
+            last_last_index != getItemCount() - 1 &&
+            position == last_last_index) {
+            last_last_index = -1;
+            ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
+            ((ViewGroup.MarginLayoutParams)params).bottomMargin = 0;
+        }
+
         // 为最后一个item设置margin，以防止其紧贴底部
         if (position == getItemCount() - 1) {
+            last_last_index = getItemCount() - 1;
             ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
             float density = pageContext.getResources().getDisplayMetrics().density;
             ((ViewGroup.MarginLayoutParams)params).bottomMargin = Math.round(200 * density);

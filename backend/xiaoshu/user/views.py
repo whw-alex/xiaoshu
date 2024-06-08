@@ -527,13 +527,15 @@ def save_note_text(request):
             if index == -1:
                 print("新建文本")
                 # old_title = note.title
-                note.title = content
-                note.name = content
+                
                 new_path = note.path[:note.path.rfind('/')] + '/' + content
 
                 name_collision = Note.objects.filter(user=user, path=new_path).exists()
                 if name_collision:
                     HttpResponse(json.dumps({'msg': '标题成功！'}), status=200)
+
+                note.title = content
+                note.name = content
                 note.path = note.path[:note.path.rfind('/')] + '/' + content  
                 print(f'new path: {note.path}')  
                 # note.path = note.path.replace(old_title, content)
