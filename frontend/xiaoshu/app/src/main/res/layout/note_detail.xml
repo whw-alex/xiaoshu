@@ -40,9 +40,10 @@
 
             <EditText
                 android:id="@+id/title"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="标题"
+                android:background="@null"
                 android:textSize="32sp"
                 tools:layout_editor_absoluteX="38dp"
                 tools:layout_editor_absoluteY="75dp" />
@@ -62,6 +63,31 @@
         </LinearLayout>
 
     </ScrollView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="50dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="30dp"
+        app:cardBackgroundColor="@color/teal_700">
+
+
+    <ImageView
+        android:id="@+id/fab"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+
+        android:src="@drawable/ai"
+        android:elevation="25dp"
+        android:outlineAmbientShadowColor="#B309101D"
+        android:outlineSpotShadowColor="@color/transparent"
+        android:backgroundTint="#80FFFFFF"
+         />
+    </androidx.cardview.widget.CardView>
+
 
 
 </RelativeLayout>

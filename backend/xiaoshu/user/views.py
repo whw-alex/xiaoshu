@@ -389,7 +389,7 @@ def create_file(request):
                 print("重复！")
                 return HttpResponse(json.dumps({'msg': '文件名重复！'}), status=400)
             Note.objects.create(title=name, user=user, name=name, parent=parent, path=path)
-            TextSegment.objects.create(text='placeholder', note=Note.objects.get(user=user, path=path), seg_type='text', index=0)
+            TextSegment.objects.create(text='', note=Note.objects.get(user=user, path=path), seg_type='text', index=0)
             note = Note.objects.get(user=user, path=path)
             note.current_index = 1
             note.save()
@@ -478,7 +478,7 @@ def upload_note_fake_image(request):
         ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
         note.current_index += 1
         note.save()
-        TextSegment.objects.create(text='placeholder', note=note, seg_type='text', index=note.current_index)
+        TextSegment.objects.create(text='', note=note, seg_type='text', index=note.current_index)
         note.current_index += 1
         note.save()
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
@@ -510,7 +510,7 @@ def upload_note_audio(request):
         AudioSegment.objects.create(audio=audio_path, note=note, seg_type='audio', index=current_index)
         note.current_index += 1
         note.save()
-        TextSegment.objects.create(text='placeholder', note=note, seg_type='text', index=note.current_index)
+        TextSegment.objects.create(text='', note=note, seg_type='text', index=note.current_index)
         note.current_index += 1
         note.save()
     return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
