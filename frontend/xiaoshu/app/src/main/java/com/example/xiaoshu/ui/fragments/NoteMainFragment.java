@@ -669,7 +669,18 @@ public class NoteMainFragment extends Fragment{
         if (!fileOpened) return;
 
         fileOpened = false;
+        if(inSearch) ++file_index;
+
         if (! file_list.get(file_index).title.equals(title)) {
+            if(inSearch){
+                --file_index;
+                String path = paths.get(file_index);
+                int lastSlashIndex = path.lastIndexOf("/");
+                String basePath = path.substring(0, lastSlashIndex + 1);
+                paths.set(file_index, basePath + title);
+                return;
+            }
+
             file_list.get(file_index).title = title;
             mRecyclerAdapter.notifyItemChanged(file_index);
         }
