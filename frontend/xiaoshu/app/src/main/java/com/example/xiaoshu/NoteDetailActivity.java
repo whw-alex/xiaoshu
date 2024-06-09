@@ -17,6 +17,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -98,6 +99,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
     MediaRecorder recorder;
     boolean isRecording = false;
     File audioFile;
+    ImageView ai;
 
     // 以下是关于AI对话框的状态变量
     private enum DIALOG_STATE {
@@ -186,6 +188,13 @@ public class NoteDetailActivity extends  AppCompatActivity{
             }
         });
 
+        ai = findViewById(R.id.fab);
+        ai.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                expandAIWindow();
+            }
+        });
 
         topAppBar = findViewById(R.id.topAppBar);
         topAppBar.setNavigationOnClickListener(v -> {
@@ -221,8 +230,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     }
                     return true;
 
-                } else if (itemId == R.id.item_expand_ai) {
-                    expandAIWindow();
+//                } else if (itemId == R.id.item_expand_ai) {
+//                    expandAIWindow();
                 }
 
                 return false;
@@ -244,7 +253,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             Log.d("NoteDetailActivity", "Image URL: " + mCameraUri.toString());
 //            noteList.remove(noteList.size() - 1);
             noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, mCameraUri.toString()));
-            noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
+            noteList.add(new NoteItem(NoteItem.TYPE_TEXT, ""));
 //            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
             uploadFakeImage();
@@ -255,7 +264,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
             Log.d("NoteDetailActivity", "Image URL: " + uri.toString());
 //            noteList.remove(noteList.size() - 1);
             noteList.add(new NoteItem(NoteItem.TYPE_IMAGE, uri.toString()));
-            noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
+            noteList.add(new NoteItem(NoteItem.TYPE_TEXT, ""));
 //            noteList.add(new NoteItem(NoteItem.TYPE_TEXT_PLACEHOLDER, ""));
             noteAdapter.notifyDataSetChanged();
             uploadFakeImage();
@@ -456,7 +465,7 @@ public class NoteDetailActivity extends  AppCompatActivity{
                     recorder.release();
                     recorder = null;
                     noteList.add(new NoteItem(NoteItem.TYPE_AUDIO, audioFile.getAbsolutePath()));
-                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, "placeholder"));
+                    noteList.add(new NoteItem(NoteItem.TYPE_TEXT, ""));
                     noteAdapter.notifyDataSetChanged();
                     uploadMP3();
 //                    Intent intent = new Intent(Intent.ACTION_VIEW);
