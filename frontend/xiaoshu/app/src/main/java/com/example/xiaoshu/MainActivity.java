@@ -61,10 +61,6 @@ public class MainActivity extends AppCompatActivity {
         //设置TabLayout和ViewPager联动
         tabLayout.setupWithViewPager(viewPager,false);
 
-        // 给tab设置图标
-        tabLayout.getTabAt(0).setIcon(R.drawable.ic_note);
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_user);
-
     }
 
     @Override
@@ -74,8 +70,7 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) { //接收后面一个界面结果码为1的界面
             Bundle bundle = data.getExtras();
             ((NoteMainFragment)tabFragmentList.get(0))
-                    .closeAndRefresh(bundle.getString("title"));
-
+                    .closeAndRefresh(bundle.getString("title"), bundle.getString("content"));
         }
 
     }
