@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -45,7 +44,6 @@ import com.example.xiaoshu.Response.FilelistResponse;
 import com.example.xiaoshu.Response.SearchResponse;
 import com.getbase.floatingactionbutton.*;
 import com.kongzue.dialogx.dialogs.CustomDialog;
-import com.kongzue.dialogx.dialogs.MessageDialog;
 import com.kongzue.dialogx.interfaces.OnBindView;
 
 
@@ -501,6 +499,8 @@ public class NoteMainFragment extends Fragment{
         }
 
         public void deleteFile(File.FileType type, String title) {
+            if(inSearch) return;
+
             int pos = 0;
             for(; pos < file_list.size(); pos++) {
                 if(file_list.get(pos).type == type &&
@@ -665,13 +665,27 @@ public class NoteMainFragment extends Fragment{
 
     }
 
-    public void closeAndRefresh(String title) {
+    public void closeAndRefresh(String title, String content) {
         if (!fileOpened) return;
 
         fileOpened = false;
-        if (! file_list.get(file_index).title.equals(title)) {
-            file_list.get(file_index).title = title;
+        if(inSearch) ++file_index;
+
+        File f = file_list.get(file_index);
+
+        if (! f.title.equals(title) || ! f.content.equals(content)) {
+
+            f.title = title;
+            f.content = content;
             mRecyclerAdapter.notifyItemChanged(file_index);
+
+            if(inSearch){
+                --file_index;
+                String path = paths.get(file_index);
+                int lastSlashIndex = path.lastIndexOf("/");
+                String basePath = path.substring(0, lastSlashIndex + 1);
+                paths.set(file_index, basePath + title);
+            }
         }
     }
 

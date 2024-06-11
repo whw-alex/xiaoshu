@@ -246,9 +246,6 @@ public class NoteDetailActivity extends  AppCompatActivity{
         Log.d("NoteDetailActivity", "onActivityResult");
 
         if (requestCode == PERMISSION_CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
-
-
-
 //             获取notelist
             Log.d("NoteDetailActivity", "Image URL: " + mCameraUri.toString());
 //            noteList.remove(noteList.size() - 1);
@@ -536,6 +533,8 @@ public class NoteDetailActivity extends  AppCompatActivity{
             builder.addFormDataPart("id", String.valueOf(id));
             builder.addFormDataPart("file", "image.jpg", requestBody);
             builder.addFormDataPart("path", path);
+            System.out.println(noteList.size());
+            builder.addFormDataPart("index", String.valueOf(noteList.size() - 2));
             RequestBody body = builder.build();
             Log.d("NoteDetailActivity", "uploadImage: " + body.contentType() + " " + body.contentLength());
             Call<AddFileResponse> call = api.uploadImage(body);
@@ -637,9 +636,32 @@ public class NoteDetailActivity extends  AppCompatActivity{
                 {
                     AddFileResponse addFileResponse = response.body();
                     Log.d("NoteDetailActivity", "AddFileResponse: " + addFileResponse.getMsg());
-                    String new_title = ((EditText) findViewById(R.id.title)).getText().toString();
                     Intent intent = new Intent();
+                    String new_title = ((EditText) findViewById(R.id.title)).getText().toString();
                     intent.putExtra("title", new_title);
+
+                    String new_content = "";
+                    int to_fill = 4;
+                    for(NoteItem item : noteList) {
+                        if (item.getType() == NoteItem.TYPE_TEXT) {
+                            if (item.getContent().length() >= to_fill) {
+                                new_content += item.getContent().substring(0, to_fill);
+                                to_fill = 0;
+                                break;
+                            }
+                            else {
+                                new_content += item.getContent();
+                                to_fill -= item.getContent().length();
+                            }
+                        }
+                    }
+                    if(to_fill == 4) {
+                        new_content = "暂时还没有内容哦~";
+                    }
+                    else if(to_fill == 0) {
+                        new_content += "...";
+                    }
+                    intent.putExtra("content", new_content);
                     setResult(RESULT_OK, intent);
                     finish();
                 }

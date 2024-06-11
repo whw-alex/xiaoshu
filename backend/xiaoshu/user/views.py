@@ -27,7 +27,7 @@ def login(request):
         try:
             user = User.objects.get(username=username)
         except:
-            return HttpResponse('用户不存在',status=400)
+            return HttpResponse('用户不存在',status=401)
         if user.password == password:
             # user.token = jwt.encode({'id': user.id}, 'secret', algorithm='HS256')
             data_json = {
@@ -41,7 +41,7 @@ def login(request):
             print(f'data_json: {data_json}')
             return HttpResponse(json.dumps(data_json),status=200)
         else:
-            return HttpResponse('密码错误',status=400)
+            return HttpResponse('密码错误',status=402)
 
     
 def register(request):
@@ -282,11 +282,22 @@ def file_list(request):
         for note in note_list:
             data_json['labels'].append(note.label)
             data_json['titles'].append(note.name)
-            try:
-                first_text = TextSegment.objects.filter(note=note).first()
-                data_json['contents'].append(first_text.text[:4]+'...')
-            except:
-                data_json['contents'].append('')
+            content = ""
+            to_fill = 4
+            texts = TextSegment.objects.filter(note=note)
+            for text in texts:
+                if len(text.text) >= to_fill:
+                    content += text.text[:to_fill]
+                    to_fill = 0
+                    break
+                else:
+                    content += text.text
+                    to_fill -= len(text.text)
+            if to_fill == 4:
+                content = "暂时没有内容~"
+            elif to_fill == 0:
+                content += "..."
+            data_json['contents'].append(content)
             data_json['dates'].append(note.modified_time.strftime("%m月%d号"))
             print(note.path)
 
@@ -447,12 +458,15 @@ def upload_note_image(request):
             for chunk in image.chunks():
                 f.write(chunk)
         image_path = f'{settings.BASE_URL}/static/image/{user_id}/{path}/{str(current_index) + "_" + image.name}'
-        image_list = ImageSegment.objects.filter(note=note)
-        for i in image_list:
-            if i.image.__contains__('fake.jpg'):
-                i.image = image_path
-                i.save()
-                return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+        image_index = data.get('index')
+        print(f'index for the image: {image_index}')
+        try:
+            img = ImageSegment.objects.get(note=note, index=image_index)
+            img.image = image_path
+            img.save()
+            return HttpResponse(json.dumps({'msg': '创建成功！'}), status=200)
+        except:
+            return HttpResponse(json.dumps({'msg': '尝试更改不存在的照片！'}), status=400)
             
         # ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
         # note.current_index += 1
@@ -474,7 +488,7 @@ def upload_note_fake_image(request):
         current_index = note.current_index
         print(f'current_index: {current_index}')
         # save image
-        image_path = f'{settings.BASE_URL}/static/image/fake.jpg'
+        image_path = f'{settings.BASE_URL}/static/image/default.png'
         ImageSegment.objects.create(image=image_path, note=note, seg_type='image', index=current_index)
         note.current_index += 1
         note.save()
@@ -615,7 +629,7 @@ def chat(request):
 
         from openai import OpenAI
         client = OpenAI(
-            api_key = 'sk-CIvPbVOuIIdTR17Mw5SlxMpqkiivo3SKXZk9iZnXaUONAKET',
+            api_key = 'sk-3pFwaXe1DVsYCSLVc2QX47CKDHQXrMTDzGySjjrV7HckpvaB',
             base_url = "https://api.moonshot.cn/v1",
         )
         
