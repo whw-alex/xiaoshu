@@ -58,4 +58,5 @@ dependencies {implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("com.squareup.okhttp3:okhttp:3.14.+")
     implementation("com.kongzue.dialogx:DialogX:0.0.49")
     implementation("com.github.arimorty:floatingsearchview:2.1.1")
+    implementation("com.android.support:design:28.0.0")
 }
